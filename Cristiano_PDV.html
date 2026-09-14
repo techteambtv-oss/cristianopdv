@@ -1,0 +1,2449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cristiano PDV | Assistência Técnica</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+:root{--primary:#1e3a8a;--primary-light:#3b82f6;--primary-dark:#1e2a5a;--secondary:#0f172a;--bg:#f1f5f9;--card:#fff;--text:#0f172a;--text-muted:#64748b;--border:#e2e8f0;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--radius:10px;--shadow:0 4px 12px rgba(0,0,0,.05)}
+body{background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+.sidebar{width:260px;background:var(--secondary);color:#e2e8f0;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:100;transition:transform .2s}
+.sidebar-header{padding:1.5rem;border-bottom:1px solid #334155;display:flex;align-items:center;gap:10px}
+.sidebar-logo{width:42px;height:42px;border-radius:10px;object-fit:cover;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sidebar-logo img{width:100%;height:100%;object-fit:cover}
+.sidebar-logo i{font-size:1.6rem;color:var(--primary-light)}
+.sidebar-header h2{font-size:1.15rem;font-weight:700;color:#fff;cursor:pointer;transition:.15s;line-height:1.2}
+.sidebar-header small{display:block;font-size:.7rem;color:#94a3b8;cursor:pointer;transition:.15s;margin-top:2px}
+.sidebar-header h2:hover,.sidebar-header small:hover{color:var(--primary-light)}
+.btn-edit-nome{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#cbd5e1;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.72rem;transition:.15s;padding:0;flex-shrink:0}
+.btn-edit-nome:hover{background:var(--primary-light);color:#fff;border-color:var(--primary-light)}
+.nav{flex:1;padding:1rem 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:.7rem 1.5rem;color:#cbd5e1;text-decoration:none;font-weight:500;font-size:.9rem;cursor:pointer;border-left:3px solid transparent;transition:.15s}
+.nav-item i{width:20px}
+.nav-item:hover{background:#1e293b;color:#fff}
+.nav-item.active{background:#1e293b;color:#fff;border-left-color:var(--primary-light)}
+.nav-section{padding:1rem 1.5rem .25rem;font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#64748b}
+.main{flex:1;margin-left:260px;padding:1.5rem 2rem;min-width:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+.page-title{font-size:1.6rem;font-weight:700;color:var(--secondary)}
+.badge{display:inline-block;padding:.25rem .75rem;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-success{background:#d1fae5;color:#065f46}
+.badge-warning{background:#fef3c7;color:#92400e}
+.badge-danger{background:#fee2e2;color:#991b1b}
+.badge-info{background:#dbeafe;color:#1e40af}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.1rem;border-radius:var(--radius);font-weight:600;font-size:.85rem;cursor:pointer;transition:.15s;background:#fff;color:var(--text);border:1px solid var(--border)}
+.btn:hover{background:#f8fafc}
+.btn-primary{background:var(--primary);color:#fff;border:none}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-success{background:var(--success);color:#fff;border:none}
+.btn-danger{background:var(--danger);color:#fff;border:none}
+.btn-sm{padding:.3rem .7rem;font-size:.75rem}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1rem;margin-bottom:2rem}
+.card{background:var(--card);border-radius:var(--radius);padding:1.15rem;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:.5rem}
+.card-value{font-size:1.6rem;font-weight:700;color:var(--secondary)}
+.card-clicavel{cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.card-clicavel:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.12);border-color:var(--primary-light)}
+.card-clicavel::after{content:'\f044';font-family:'Font Awesome 6 Free';font-weight:900;position:absolute;top:8px;right:10px;font-size:.75rem;color:var(--primary-light);opacity:0;transition:.15s}
+.card-clicavel:hover::after{opacity:1}
+.card-hint{font-size:.65rem;color:var(--primary-light);margin-top:.3rem;display:flex;align-items:center;gap:4px}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+.chart-box{background:var(--card);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);border:1px solid var(--border)}
+.chart-box h3{font-size:.95rem;font-weight:600;margin-bottom:1rem}
+.shortcuts{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:2rem}
+.shortcut-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1.1rem;display:flex;align-items:center;gap:8px;font-weight:500;font-size:.85rem;cursor:pointer;transition:.15s;box-shadow:var(--shadow)}
+.shortcut-btn i{color:var(--primary)}
+.shortcut-btn:hover{background:#f8fafc;border-color:var(--primary-light)}
+.table-container{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow-x:auto;margin-bottom:1.5rem}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;padding:.85rem 1.1rem;background:#f8fafc;color:var(--text-muted);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+td{padding:.8rem 1.1rem;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;justify-content:center;align-items:center;z-index:1000;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:var(--radius);max-width:600px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,.2)}
+.modal-header{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:5}
+.modal-header h3{font-size:1.05rem;font-weight:700}
+.modal-body{padding:1.4rem}
+.modal-footer{padding:1rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;background:#fff;z-index:5}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:.78rem;font-weight:600;margin-bottom:.35rem;color:var(--text-muted)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.6rem .9rem;border:1px solid var(--border);border-radius:8px;font-size:.9rem;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:2px solid var(--primary-light);border-color:transparent}
+.pdv-grid{display:grid;grid-template-columns:1fr 380px;gap:1.25rem}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:.65rem .8rem;border-bottom:1px solid var(--border);cursor:pointer;transition:.1s}
+.cart-item:hover{background:#f8fafc}
+.pdv-product-list{max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:8px}
+.pdv-search{display:flex;gap:8px;margin-bottom:1rem}
+.pdv-search input{flex:1;padding:.7rem 1rem;border:1px solid var(--border);border-radius:8px;font-size:.9rem}
+.empty-msg{text-align:center;padding:2rem;color:var(--text-muted);font-size:.85rem}
+.mobile-menu-btn{display:none;background:var(--secondary);color:#fff;border:none;padding:.65rem .9rem;border-radius:8px;font-size:1.1rem;cursor:pointer}
+.section-title{font-size:.85rem;font-weight:700;color:var(--primary);margin:1rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.8rem}
+@media(max-width:1024px){.chart-row{grid-template-columns:1fr}.pdv-grid{grid-template-columns:1fr}.grid-4{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);width:280px}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:1rem}
+  .mobile-menu-btn{display:block}
+  .cards-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
+}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--secondary);color:#fff;padding:1rem 1.4rem;border-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,.2);z-index:2000;font-size:.85rem;opacity:0;transform:translateY(20px);transition:.3s}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+body{background-size:cover !important;background-position:center !important;background-attachment:fixed !important}
+body.com-fundo::before{content:'';position:fixed;inset:0;background:rgba(241,245,249,.92);z-index:-1;pointer-events:none}
+body.com-fundo .main{position:relative;z-index:1}
+.preview-box{margin-top:.6rem;padding:.8rem;background:#f8fafc;border-radius:8px;border:1px dashed var(--border);text-align:center;min-height:80px;display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--text-muted)}
+.preview-box img{max-width:100%;max-height:120px;border-radius:8px}
+.preview-bg{width:100%;height:110px;border-radius:8px;background-size:cover;background-position:center;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:.8rem;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+#loginScreen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#1e3a8a 0%,#0f172a 100%);display:flex;align-items:center;justify-content:center;padding:1rem;background-size:cover;background-position:center}
+#loginScreen.hidden{display:none}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;max-width:400px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.4);animation:loginFadeIn .4s ease;position:relative}
+@keyframes loginFadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes loginShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.login-logo{text-align:center;margin-bottom:1.5rem}
+.login-logo i{font-size:2.5rem;color:var(--primary);background:#dbeafe;width:80px;height:80px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:.8rem}
+.login-logo img{max-width:90px;max-height:90px;border-radius:12px;margin-bottom:.8rem}
+.login-logo h1{font-size:1.4rem;font-weight:700;color:var(--secondary);margin-bottom:.3rem}
+.login-logo p{font-size:.85rem;color:var(--text-muted)}
+.login-form .form-group{margin-bottom:1.1rem}
+.login-form label{display:block;font-size:.8rem;font-weight:600;color:var(--text-muted);margin-bottom:.4rem}
+.login-form input{width:100%;padding:.85rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-size:.95rem;font-family:inherit;transition:.15s}
+.login-form input:focus{outline:none;border-color:var(--primary-light);box-shadow:0 0 0 4px rgba(59,130,246,.15)}
+.login-btn{width:100%;padding:.9rem;border:none;border-radius:10px;background:var(--primary);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:.5rem}
+.login-btn:hover{background:var(--primary-dark)}
+.login-btn:disabled{opacity:.7;cursor:not-allowed}
+.login-error{background:#fee2e2;color:#991b1b;padding:.75rem 1rem;border-radius:8px;font-size:.82rem;margin-bottom:1rem;display:none;align-items:center;gap:8px}
+.login-error.show{display:flex}
+.login-footer{text-align:center;margin-top:1.5rem;font-size:.7rem;color:#64748b}
+#loginScreen .input-icon{position:relative}
+#loginScreen .input-icon i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.9rem}
+#loginScreen .input-icon input{padding-left:40px}
+#loginScreen .btn-edit-login{position:absolute;top:1rem;right:1rem;width:40px;height:40px;border-radius:50%;background:#eff6ff;border:1px solid #bfdbfe;color:var(--primary);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+#loginScreen .btn-edit-login:hover{background:var(--primary-light);border-color:var(--primary-light);color:#fff;transform:scale(1.08)}
+#loginScreen .btn-edit-login-label{position:absolute;top:.55rem;right:3.4rem;background:#eff6ff;border:1px solid #bfdbfe;color:var(--primary);font-size:.68rem;font-weight:700;padding:.3rem .6rem;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.12);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <span class="btn-edit-login-label">Trocar imagem</span>
+    <button class="btn-edit-login" id="btnEditLogin" title="Trocar imagem/logo e fundo da tela de login">
+      <i class="fas fa-camera"></i>
+    </button>
+    <div class="login-logo">
+      <div id="loginIconeWrap"><i class="fas fa-tools" id="loginIcon"></i></div>
+      <h1 id="loginTitle">Cristiano PDV</h1>
+      <p id="loginSub">Assistência Técnica</p>
+    </div>
+    <div class="login-error" id="loginError">
+      <i class="fas fa-exclamation-circle"></i>
+      <span id="loginErrorMsg">Usuário ou senha inválidos</span>
+    </div>
+    <form class="login-form" id="loginForm" autocomplete="off">
+      <div class="form-group">
+        <label>Usuário</label>
+        <div class="input-icon">
+          <i class="fas fa-user"></i>
+          <input type="text" id="loginUser" placeholder="Digite seu usuário" autocomplete="username" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <div class="input-icon">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="loginPass" placeholder="Digite sua senha" autocomplete="current-password" required>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text-muted);cursor:pointer;margin-bottom:1rem">
+        <input type="checkbox" id="loginLembrar" style="width:auto;margin:0"> Lembrar meu usuário
+      </label>
+      <button type="submit" class="login-btn" id="loginBtn">
+        <i class="fas fa-sign-in-alt"></i> Entrar no sistema
+      </button>
+    </form>
+    <div class="login-footer">© Cristiano PDV Team • v1.0</div>
+  </div>
+</div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo" id="sidebarLogo"><i class="fas fa-tools"></i></div>
+    <div style="flex:1;min-width:0">
+      <h2 id="sidebarNome" title="Clique para editar">Cristiano PDV</h2>
+      <small id="sidebarSub" title="Clique para editar">Assistência Técnica</small>
+    </div>
+    <button class="btn-edit-nome" id="btnEditNome" title="Editar nome do sistema">
+      <i class="fas fa-pen"></i>
+    </button>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Principal</div>
+    <a class="nav-item active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a>
+    <a class="nav-item" data-page="pdv"><i class="fas fa-cash-register"></i> PDV / Vendas</a>
+    <a class="nav-item" data-page="vendas"><i class="fas fa-receipt"></i> Histórico de Vendas</a>
+    <a class="nav-item" data-page="os"><i class="fas fa-clipboard-list"></i> Ordens de Serviço</a>
+    <a class="nav-item" data-page="orcamentos"><i class="fas fa-file-invoice-dollar"></i> Orçamentos</a>
+    <div class="nav-section">Cadastros</div>
+    <a class="nav-item" data-page="clientes"><i class="fas fa-users"></i> Clientes</a>
+    <a class="nav-item" data-page="equipamentos"><i class="fas fa-mobile-alt"></i> Equipamentos</a>
+    <a class="nav-item" data-page="produtos"><i class="fas fa-box"></i> Produtos</a>
+    <a class="nav-item" data-page="servicos"><i class="fas fa-wrench"></i> Serviços</a>
+    <a class="nav-item" data-page="estoque"><i class="fas fa-warehouse"></i> Estoque</a>
+    <div class="nav-section">Financeiro</div>
+    <a class="nav-item" data-page="caixa"><i class="fas fa-calculator"></i> Caixa</a>
+    <a class="nav-item" data-page="financeiro"><i class="fas fa-coins"></i> Financeiro</a>
+    <a class="nav-item" data-page="garantias"><i class="fas fa-shield-alt"></i> Garantias</a>
+    <div class="nav-section">Sistema</div>
+    <a class="nav-item" data-page="relatorios"><i class="fas fa-chart-bar"></i> Relatórios</a>
+    <a class="nav-item" data-page="usuarios"><i class="fas fa-user-shield"></i> Usuários</a>
+    <a class="nav-item" data-page="config"><i class="fas fa-cog"></i> Configurações</a>
+  </nav>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="mobile-menu-btn" id="menuToggle"><i class="fas fa-bars"></i></button>
+      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn btn-sm" id="btnPersonalizar" title="Personalizar sistema (logo e fundo)" style="padding:.45rem .7rem">
+        <i class="fas fa-palette"></i>
+      </button>
+      <select id="userSwitch" style="padding:.4rem .6rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem"></select>
+      <span class="badge badge-success"><i class="fas fa-circle"></i> Online</span>
+      <button class="btn btn-sm btn-danger" id="btnLogout" title="Sair do sistema" style="padding:.45rem .7rem">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </div>
+  <div id="appContent"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== BANCO DE DADOS ==================== */
+const DB = {
+  get(key, def = []) {
+    try { const data = localStorage.getItem('cpdv_' + key); return data ? JSON.parse(data) : def; }
+    catch(e){ return def; }
+  },
+  set(key, value) {
+    try { localStorage.setItem('cpdv_' + key, JSON.stringify(value)); } catch(e){}
+    try { sincronizarNuvem(key, value); } catch(e){ console.error('Erro ao sincronizar com a nuvem', e); }
+  },
+  seed() {
+    if (this.get('seeded', false) === true) return;
+    this.set('usuarios', [
+      {id:1,nome:'Administrador',login:'admin',senha:'2312',email:'admin@empresa.com',perfil:'Administrador',ativo:true},
+      {id:2,nome:'Carlos Técnico',login:'carlos',senha:'123',email:'carlos@empresa.com',perfil:'Técnico',ativo:true}
+    ]);
+    this.set('clientes', [
+      {id:1,codigo:'CLI-001',tipo:'Pessoa Física',nome:'João da Silva',cpf:'123.456.789-00',celular:'(11) 99999-1111',whatsapp:'(11) 99999-1111',email:'joao@email.com',cidade:'São Paulo',estado:'SP',status:'Ativo'},
+      {id:2,codigo:'CLI-002',tipo:'Pessoa Física',nome:'Maria Oliveira',cpf:'987.654.321-00',celular:'(11) 98888-2222',whatsapp:'(11) 98888-2222',email:'maria@email.com',cidade:'São Paulo',estado:'SP',status:'Ativo'},
+      {id:3,codigo:'CLI-003',tipo:'Pessoa Jurídica',nome:'Empresa ABC LTDA',cnpj:'12.345.678/0001-90',celular:'(11) 97777-3333',whatsapp:'(11) 97777-3333',email:'contato@abc.com',cidade:'Osasco',estado:'SP',status:'Ativo'}
+    ]);
+    this.set('produtos', [
+      {id:1,codigoInterno:'P001',sku:'TELA-IP11',nome:'Tela iPhone 11',categoria:'Displays',marca:'Apple',unidade:'UN',ativo:true,estoque:8,estoqueMin:3,precoCusto:280,preco:450,exibirPDV:true},
+      {id:2,codigoInterno:'P002',sku:'BAT-A10',nome:'Bateria Samsung A10',categoria:'Baterias',marca:'Samsung',unidade:'UN',ativo:true,estoque:15,estoqueMin:5,precoCusto:65,preco:120,exibirPDV:true},
+      {id:3,codigoInterno:'P003',sku:'CABO-UC',nome:'Cabo USB-C',categoria:'Cabos',marca:'Genérico',unidade:'UN',ativo:true,estoque:2,estoqueMin:5,precoCusto:12,preco:35,exibirPDV:true},
+      {id:4,codigoInterno:'P004',sku:'CAR-20W',nome:'Carregador 20W',categoria:'Carregadores',marca:'Genérico',unidade:'UN',ativo:true,estoque:0,estoqueMin:3,precoCusto:40,preco:89,exibirPDV:true},
+      {id:5,codigoInterno:'P005',sku:'SSD-480',nome:'SSD 480GB',categoria:'SSD',marca:'Kingston',unidade:'UN',ativo:true,estoque:6,estoqueMin:2,precoCusto:190,preco:320,exibirPDV:true},
+      {id:6,codigoInterno:'P006',sku:'RAM-8GB',nome:'Memória RAM 8GB',categoria:'Memórias',marca:'Corsair',unidade:'UN',ativo:true,estoque:10,estoqueMin:4,precoCusto:130,preco:210,exibirPDV:true}
+    ]);
+    this.set('servicos', [
+      {id:1,codigo:'S001',nome:'Troca de tela',preco:150,tempo:'1h',garantia:90,status:'Ativo'},
+      {id:2,codigo:'S002',nome:'Troca de bateria',preco:100,tempo:'40min',garantia:90,status:'Ativo'},
+      {id:3,codigo:'S003',nome:'Formatação',preco:80,tempo:'1h30',garantia:30,status:'Ativo'},
+      {id:4,codigo:'S004',nome:'Limpeza',preco:60,tempo:'30min',garantia:30,status:'Ativo'},
+      {id:5,codigo:'S005',nome:'Instalação Windows',preco:120,tempo:'1h',garantia:30,status:'Ativo'},
+      {id:6,codigo:'S006',nome:'Reparo de placa',preco:350,tempo:'3h',garantia:90,status:'Ativo'}
+    ]);
+    this.set('os', [
+      {id:1,numero:'OS-001',clienteId:1,equipamento:'iPhone 11',tipoEquip:'iPhone',marca:'Apple',modelo:'iPhone 11',defeito:'Tela quebrada',status:'Pronta',valorTotal:600,valorPago:600,dataAbertura:this._hoje(),hora:'09:30',tecnico:'Carlos',garantia:90,pecas:[],servicosOS:[{nome:'Troca de tela',tecnico:'Carlos',qtd:1,valor:600,desconto:0}],subtotalPecas:0,subtotalServicos:600,desconto:0,acrescimo:0,timeline:[]},
+      {id:2,numero:'OS-002',clienteId:2,equipamento:'Samsung A10',tipoEquip:'Celular',marca:'Samsung',modelo:'Galaxy A10',defeito:'Bateria viciada',status:'Em manutenção',valorTotal:220,valorPago:0,dataAbertura:this._hoje(),hora:'10:15',tecnico:'Ana',garantia:90,pecas:[{nome:'Bateria Samsung A10',codigo:'BAT-A10',qtd:1,preco:120,desconto:0}],servicosOS:[{nome:'Troca de bateria',tecnico:'Ana',qtd:1,valor:100,desconto:0}],subtotalPecas:120,subtotalServicos:100,desconto:0,acrescimo:0,timeline:[]},
+      {id:3,numero:'OS-003',clienteId:3,equipamento:'Notebook Dell',tipoEquip:'Notebook',marca:'Dell',modelo:'Inspiron 15',defeito:'Não liga',status:'Em análise',valorTotal:450,valorPago:0,dataAbertura:this._hoje(),hora:'14:00',tecnico:'Carlos',garantia:90,pecas:[],servicosOS:[],subtotalPecas:0,subtotalServicos:0,desconto:0,acrescimo:0,timeline:[]}
+    ]);
+    this.set('vendas', [
+      {id:1,data:this._hoje(),hora:'10:30',subtotal:450,desconto:0,total:450,cliente:'João da Silva',clienteId:1,vendedor:'Admin',pagamento:'PIX',itens:[{id:1,nome:'Tela iPhone 11',qtd:1,preco:450,total:450}]},
+      {id:2,data:this._hoje(),hora:'11:00',subtotal:120,desconto:0,total:120,cliente:'Maria Oliveira',clienteId:2,vendedor:'Admin',pagamento:'Dinheiro',itens:[{id:2,nome:'Bateria Samsung A10',qtd:1,preco:120,total:120}]},
+      {id:3,data:this._hoje(),hora:'14:20',subtotal:320,desconto:0,total:320,cliente:'Empresa ABC LTDA',clienteId:3,vendedor:'Admin',pagamento:'Cartão Crédito',itens:[{id:5,nome:'SSD 480GB',qtd:1,preco:320,total:320}]},
+      {id:4,data:this._hoje(),hora:'15:45',subtotal:210,desconto:0,total:210,cliente:'João da Silva',clienteId:1,vendedor:'Admin',pagamento:'PIX',itens:[{id:6,nome:'Memória RAM 8GB',qtd:1,preco:210,total:210}]},
+      {id:5,data:this._hoje(),hora:'16:10',subtotal:169,desconto:0,total:169,cliente:'Maria Oliveira',clienteId:2,vendedor:'Admin',pagamento:'Dinheiro',itens:[{id:4,nome:'Carregador 20W',qtd:1,preco:89,total:89}]},
+      {id:6,data:this._hoje(),hora:'17:00',subtotal:1050,desconto:0,total:1050,cliente:'Empresa ABC LTDA',clienteId:3,vendedor:'Admin',pagamento:'Cartão Crédito',itens:[{id:1,nome:'Tela iPhone 11',qtd:2,preco:450,total:900}]},
+      {id:7,data:this._hoje(),hora:'18:30',subtotal:80,desconto:0,total:80,cliente:'Consumidor Final',clienteId:null,vendedor:'Admin',pagamento:'Dinheiro',itens:[{id:3,nome:'Cabo USB-C',qtd:2,preco:35,total:70}]}
+    ]);
+    this.set('contasReceber', [
+      {id:1,cliente:'João da Silva',valor:600,vencimento:'2025-12-31',status:'Em aberto'}
+    ]);
+    this.set('contasPagar', [
+      {id:1,fornecedor:'Distribuidora XYZ',valor:1200,vencimento:'2025-12-31',status:'Em aberto'}
+    ]);
+    this.set('equipamentos', []);
+    this.set('orcamentos', []);
+    this.set('garantias', []);
+    this.set('caixa', {aberto:false,saldo:0,movimentos:[]});
+    this.set('config', {
+      nome:'Cristiano PDV Team', razaoSocial:'Cristiano Assistência Técnica LTDA',
+      cnpj:'12.345.678/0001-90', telefone:'(11) 99999-0000', whatsapp:'(11) 99999-0000',
+      email:'contato@cristianopdv.com', endereco:'', numero:'', bairro:'', cidade:'', estado:'',
+      garantia:90, mensagemRodape:'Obrigado pela preferência!',
+      termosGarantia:'Garantia conforme prazos específicos de cada serviço.',
+      nomeSistema:'Cristiano PDV', subSistema:'Assistência Técnica',
+      loginIcone:'fa-tools', loginBg:'', logoSistema:'', fundoSistema:''
+    });
+    this.set('seeded', true);
+  },
+  _hoje(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+};
+
+/* ==================== NUVEM (FIREBASE) ====================
+   Guarda uma cópia mínima da OS e da config da loja no Firestore para que a
+   página pública de acompanhamento (?acompanhar=CODIGO) funcione no celular
+   do cliente, fora do computador da loja. Sem isso o link só funciona no
+   mesmo navegador em que a OS foi criada.
+
+   COMO ATIVAR (gratuito):
+   1. Crie um projeto em https://console.firebase.google.com
+   2. Vá em "Build > Firestore Database" e clique em "Criar banco de dados"
+      (modo produção, escolha a região mais próxima, ex: southamerica-east1)
+   3. Em "Configurações do projeto > Geral > Seus apps", clique no ícone
+      </> (Web), registre um app e copie as credenciais para o objeto abaixo
+   4. Em "Firestore Database > Regras", cole as regras sugeridas no arquivo
+      SETUP-FIREBASE.md que acompanha este HTML, e publique
+   Até preencher as credenciais reais, o app funciona normalmente em modo
+   local (como antes), só que sem o acompanhamento público funcionando. */
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY_AQUI",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
+};
+const FIREBASE_ATIVO = !!(firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('AQUI'));
+let dbCloud = null;
+if (FIREBASE_ATIVO) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    dbCloud = firebase.firestore();
+  } catch (e) {
+    console.error('Não foi possível iniciar o Firebase. Verifique firebaseConfig.', e);
+  }
+}
+
+DB.seed();
+
+/* ==================== HELPERS ==================== */
+function money(v){ return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0); }
+function fmtDate(d){ if(!d) return '—'; const p=String(d).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d; }
+function today(){ return new Date().toISOString().split('T')[0]; }
+function nowHora(){ return new Date().toTimeString().substring(0,5); }
+function nextId(col){ const a=DB.get(col,[]); return a.length?Math.max(...a.map(i=>i.id))+1:1; }
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg,type='success'){ const t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.className='toast show '+type; clearTimeout(t._tm); t._tm=setTimeout(()=>{ t.className='toast '+type; },2500); }
+function corStatusOS(st){ if(['Entregue','Aprovada','Pronta','Aprovado'].includes(st)) return 'badge-success'; if(['Cancelada','Cancelado','Reprovada'].includes(st)) return 'badge-danger'; if(['Em manutenção','Aguardando peça','Em teste','Aguardando retirada','Em reparo'].includes(st)) return 'badge-warning'; return 'badge-info'; }
+function codigoAuto(col,prefixo){ return prefixo+'-'+String(nextId(col)).padStart(3,'0'); }
+
+const App = { cart:[], desconto:0, charts:{}, usuarioAtivo:null };
+
+/* ==================== APLICAR LOGO E FUNDO ==================== */
+function aplicarLogoEFundo(){
+  const cfg = DB.get('config', {});
+  if(cfg.fundoSistema){
+    document.body.style.backgroundImage = `url('${cfg.fundoSistema}')`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.classList.add('com-fundo');
+  } else {
+    document.body.style.backgroundImage = '';
+    document.body.classList.remove('com-fundo');
+  }
+  const logoBox = document.getElementById('sidebarLogo');
+  if(logoBox){
+    if(cfg.logoSistema){
+      logoBox.innerHTML = `<img src="${cfg.logoSistema}" alt="Logo">`;
+    } else {
+      logoBox.innerHTML = `<i class="fas fa-tools"></i>`;
+    }
+  }
+}
+
+/* ==================== LICENÇA (MENSAL / ANUAL) ==================== */
+// IMPORTANTE: troque este segredo por um único seu antes de gerar chaves para clientes.
+// O mesmo valor precisa estar também no arquivo "Gerador de Chaves".
+const LICENSE_SECRET = 'CPDV-2026-TROQUE-ESTE-SEGREDO';
+const LICENSE_KEY_STORAGE = 'cpdv_license_key';
+
+function _fnv1a(str){
+  let h = 0x811c9dc5;
+  for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h>>>0).toString(16).padStart(8,'0');
+}
+function _checksumLicenca(plano, expStr){
+  return _fnv1a(LICENSE_SECRET + plano + expStr).slice(0,6).toUpperCase();
+}
+function validarChaveLicenca(chave){
+  if(!chave) return null;
+  const partes = chave.trim().toUpperCase().split('-');
+  if(partes.length !== 4 || partes[0] !== 'CPDV') return null;
+  const [_, plano, expStr, checksum] = partes;
+  if(!['M','A'].includes(plano)) return null;
+  if(!/^\d{8}$/.test(expStr)) return null;
+  if(_checksumLicenca(plano, expStr) !== checksum) return null;
+  const ano = +expStr.slice(0,4), mes = +expStr.slice(4,6)-1, dia = +expStr.slice(6,8);
+  const expDate = new Date(ano, mes, dia, 23, 59, 59);
+  if(isNaN(expDate.getTime())) return null;
+  return { plano, expStr, expDate, valido: Date.now() <= expDate.getTime() };
+}
+function getLicenseStatus(){
+  const chave = localStorage.getItem(LICENSE_KEY_STORAGE);
+  if(!chave) return { ativo:false, motivo:'sem_chave' };
+  const info = validarChaveLicenca(chave);
+  if(!info) return { ativo:false, motivo:'chave_invalida' };
+  if(!info.valido) return { ativo:false, motivo:'expirada', info };
+  return { ativo:true, info };
+}
+function removerTelaLicenca(){ document.getElementById('licenseScreen')?.remove(); document.body.style.overflow=''; }
+function mostrarTelaLicenca(motivo, info){
+  removerTelaLicenca();
+  document.getElementById('loginScreen')?.classList.add('hidden');
+  document.body.style.overflow = 'hidden';
+  const cfg = DB.get('config', {});
+  const nome = cfg.nomeSistema || 'Cristiano PDV';
+  let msg = 'Para usar o sistema, insira sua chave de ativação (plano Mensal ou Anual).';
+  if(motivo === 'chave_invalida') msg = 'A chave informada é inválida. Verifique e tente novamente.';
+  if(motivo === 'expirada') msg = `Sua licença (${info.plano==='M'?'Mensal':'Anual'}) venceu em ${info.expDate.toLocaleDateString('pt-BR')}. Insira uma nova chave para continuar usando o sistema.`;
+  const ov = document.createElement('div');
+  ov.id = 'licenseScreen';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:20000;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);display:flex;align-items:center;justify-content:center;padding:1rem';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:2.5rem 2rem;max-width:440px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.4)">
+      <div style="text-align:center;margin-bottom:1.3rem">
+        <div style="font-size:2.2rem;color:var(--primary);background:#dbeafe;width:80px;height:80px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:.8rem"><i class="fas fa-key"></i></div>
+        <h1 style="font-size:1.3rem;font-weight:700;color:var(--secondary)">${escapeHtml(nome)}</h1>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-top:.4rem">Ativação do sistema</p>
+      </div>
+      <div style="background:#fef3c7;color:#92400e;padding:.8rem 1rem;border-radius:8px;font-size:.82rem;margin-bottom:1.2rem">${escapeHtml(msg)}</div>
+      <div class="form-group"><label>Chave de licença</label>
+        <input id="licKeyInput" placeholder="CPDV-M-20261231-A1B2C3" autocomplete="off"
+          style="width:100%;padding:.85rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-size:.95rem;text-transform:uppercase;letter-spacing:1px">
+      </div>
+      <div id="licErro" style="display:none;background:#fee2e2;color:#991b1b;padding:.7rem 1rem;border-radius:8px;font-size:.8rem;margin-bottom:1rem"></div>
+      <button id="licAtivarBtn" style="width:100%;padding:.9rem;border:none;border-radius:10px;background:var(--primary);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <i class="fas fa-unlock-alt"></i> Ativar licença
+      </button>
+      <p style="text-align:center;margin-top:1.2rem;font-size:.72rem;color:#94a3b8">Não tem uma chave? Fale com quem forneceu o sistema para contratar o plano Mensal ou Anual.</p>
+    </div>`;
+  document.body.appendChild(ov);
+  document.getElementById('licAtivarBtn').addEventListener('click', tentarAtivarLicenca);
+  document.getElementById('licKeyInput').addEventListener('keydown', e => { if(e.key === 'Enter') tentarAtivarLicenca(); });
+  setTimeout(() => document.getElementById('licKeyInput')?.focus(), 100);
+}
+function tentarAtivarLicenca(){
+  const input = document.getElementById('licKeyInput');
+  const erroBox = document.getElementById('licErro');
+  const chave = (input.value || '').trim().toUpperCase();
+  const info = validarChaveLicenca(chave);
+  if(!info){ erroBox.textContent = 'Chave inválida. Confira se digitou corretamente.'; erroBox.style.display = 'block'; return; }
+  if(!info.valido){ erroBox.textContent = 'Essa chave já está expirada. Solicite uma nova.'; erroBox.style.display = 'block'; return; }
+  localStorage.setItem(LICENSE_KEY_STORAGE, chave);
+  removerTelaLicenca();
+  toast('Licença ativada! Válida até ' + info.expDate.toLocaleDateString('pt-BR'), 'success');
+  iniciarLogin();
+}
+function avisarValidadeLicenca(){
+  const lic = getLicenseStatus();
+  if(lic.ativo && lic.info){
+    const diasRestantes = Math.ceil((lic.info.expDate.getTime() - Date.now()) / 86400000);
+    if(diasRestantes <= 7) toast(`Sua licença (${lic.info.plano==='M'?'Mensal':'Anual'}) vence em ${diasRestantes} dia(s). Renove para não perder o acesso.`, 'error');
+  }
+}
+// Verificação periódica: se a licença vencer com o sistema já aberto, bloqueia na hora.
+setInterval(() => {
+  if(document.getElementById('licenseScreen')) return;
+  const lic = getLicenseStatus();
+  if(!lic.ativo) mostrarTelaLicenca(lic.motivo, lic.info);
+}, 5 * 60 * 1000);
+
+/* ==================== AUTENTICAÇÃO ==================== */
+const SESSION_KEY = 'cpdv_session';
+function getSession(){ try { const s = localStorage.getItem(SESSION_KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; } }
+function setSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({login:user.login,nome:user.nome,perfil:user.perfil,id:user.id,timestamp:Date.now()})); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+function mostrarLogin(){
+  const tela = document.getElementById('loginScreen');
+  if(tela) tela.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  const cfg = DB.get('config', {});
+  const nome = cfg.nomeSistema || 'Cristiano PDV';
+  const sub = cfg.subSistema || 'Assistência Técnica';
+  const t = document.getElementById('loginTitle');
+  const s = document.getElementById('loginSub');
+  const icw = document.getElementById('loginIconeWrap');
+  if(t) t.textContent = nome;
+  if(s) s.textContent = sub;
+  if(icw){
+    if(cfg.loginLogo){
+      icw.innerHTML = `<img src="${cfg.loginLogo}" alt="Logo">`;
+    } else if(cfg.logoSistema){
+      icw.innerHTML = `<img src="${cfg.logoSistema}" alt="Logo">`;
+    } else {
+      icw.innerHTML = `<i class="fas ${cfg.loginIcone || 'fa-tools'}" id="loginIcon"></i>`;
+    }
+  }
+  if(tela){
+    if(cfg.loginBg){
+      tela.style.background = `linear-gradient(rgba(30,58,138,.75),rgba(15,23,42,.85)), url('${cfg.loginBg}') center/cover no-repeat`;
+    } else {
+      tela.style.background = 'linear-gradient(135deg,#1e3a8a 0%,#0f172a 100%)';
+    }
+  }
+  const lembrar = localStorage.getItem('cpdv_lembrar');
+  if(lembrar){
+    const u = document.getElementById('loginUser');
+    const c = document.getElementById('loginLembrar');
+    if(u) u.value = lembrar;
+    if(c) c.checked = true;
+  }
+  setTimeout(()=>document.getElementById('loginUser')?.focus(), 100);
+}
+
+function esconderLogin(){
+  const tela = document.getElementById('loginScreen');
+  if(tela) tela.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function validarLogin(usuario, senha){
+  if(usuario === 'admin' && senha === '2312'){
+    const usuarios = DB.get('usuarios', []);
+    let admin = usuarios.find(u => u.login === 'admin');
+    if(!admin){
+      admin = {id:1, nome:'Administrador', login:'admin', senha:'2312', email:'admin@empresa.com', perfil:'Administrador', ativo:true};
+      usuarios.unshift(admin);
+      DB.set('usuarios', usuarios);
+    }
+    return admin;
+  }
+  const usuarios = DB.get('usuarios', []);
+  return usuarios.find(x => x.login === usuario && x.senha === senha && x.ativo !== false) || null;
+}
+
+function fazerLogin(e){
+  if(e) e.preventDefault();
+  const userEl = document.getElementById('loginUser');
+  const passEl = document.getElementById('loginPass');
+  const errEl = document.getElementById('loginError');
+  const errMsg = document.getElementById('loginErrorMsg');
+  const btn = document.getElementById('loginBtn');
+  const usuario = userEl.value.trim();
+  const senha = passEl.value;
+  if(!usuario || !senha){ errMsg.textContent = 'Preencha usuário e senha'; errEl.classList.add('show'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+  setTimeout(()=>{
+    const user = validarLogin(usuario, senha);
+    if(user){
+      setSession(user);
+      const lembrar = document.getElementById('loginLembrar').checked;
+      if(lembrar) localStorage.setItem('cpdv_lembrar', usuario); else localStorage.removeItem('cpdv_lembrar');
+      App.usuarioAtivo = user;
+      esconderLogin();
+      carregarUsuarioAtivo();
+      navigateTo('dashboard');
+      toast(`Bem-vindo(a), ${user.nome}!`, 'success');
+      setTimeout(avisarValidadeLicenca, 1200);
+    } else {
+      errMsg.textContent = 'Usuário ou senha inválidos';
+      errEl.classList.add('show');
+      passEl.value = '';
+      passEl.focus();
+      const box = document.querySelector('.login-box');
+      box.style.animation = 'loginShake .4s';
+      setTimeout(()=>{ box.style.animation = 'loginFadeIn .4s ease'; }, 400);
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar no sistema';
+  }, 350);
+}
+
+function logout(){
+  if(!confirm('Deseja sair do sistema?')) return;
+  clearSession();
+  App.usuarioAtivo = null;
+  const f = document.getElementById('loginForm');
+  if(f) f.reset();
+  document.getElementById('loginError')?.classList.remove('show');
+  mostrarLogin();
+  toast('Sessão encerrada', 'success');
+}
+
+/* ==================== PERSONALIZAR LOGIN ==================== */
+function abrirModalPersonalizarLogin(){
+  const cfg = DB.get('config', {});
+  const ov = document.createElement('div');
+  ov.className = 'modal-overlay active';
+  ov.style.zIndex = '10000';
+  ov.innerHTML = `
+    <div class="modal" style="max-width:520px">
+      <div class="modal-header"><h3><i class="fas fa-palette"></i> Personalizar tela de login</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Nome exibido</label><input id="plNome" value="${escapeHtml(cfg.nomeSistema||'Cristiano PDV')}" maxlength="40"></div>
+        <div class="form-group"><label>Subtítulo</label><input id="plSub" value="${escapeHtml(cfg.subSistema||'Assistência Técnica')}" maxlength="40"></div>
+        <div class="form-group"><label>Ícone (usado se não houver logo/imagem)</label>
+          <select id="plIcone">
+            ${[['fa-tools','🔧 Ferramentas'],['fa-mobile-alt','📱 Celular'],['fa-laptop','💻 Notebook'],['fa-store','🏪 Loja'],['fa-cog','⚙️ Engrenagem'],['fa-screwdriver-wrench','🛠️ Chave'],['fa-shield-halved','🛡️ Escudo'],['fa-microchip','💾 Chip'],['fa-bolt','⚡ Raio'],['fa-star','⭐ Estrela']].map(([v,l])=>`<option value="${v}" ${(cfg.loginIcone||'fa-tools')===v?'selected':''}>${l}</option>`).join('')}
+          </select>
+        </div>
+        <h4 class="section-title" style="margin-top:1rem">🖼️ Imagem/logo do círculo (login)</h4>
+        <div class="form-group"><label>URL da imagem/logo</label><input id="plLogo" value="${escapeHtml(cfg.loginLogo&&!cfg.loginLogo.startsWith('data:')?cfg.loginLogo:'')}" placeholder="https://exemplo.com/logo.png"></div>
+        <div class="form-group"><label>Ou upload de imagem</label><input type="file" id="plLogoFile" accept="image/*" style="padding:.4rem;border:1px dashed var(--border);border-radius:8px"></div>
+        <h4 class="section-title">🌆 Imagem de fundo da tela</h4>
+        <div class="form-group"><label>URL da imagem de fundo</label><input id="plBg" value="${escapeHtml(cfg.loginBg&&!cfg.loginBg.startsWith('data:')?cfg.loginBg:'')}" placeholder="https://exemplo.com/imagem.jpg"></div>
+        <div class="form-group"><label>Ou upload de imagem</label><input type="file" id="plBgFile" accept="image/*" style="padding:.4rem;border:1px dashed var(--border);border-radius:8px"></div>
+        <div style="background:#f8fafc;border-radius:8px;padding:.8rem;font-size:.8rem;color:var(--text-muted)">
+          💡 <strong>Pré-visualização:</strong>
+          <div style="margin-top:.5rem;padding:.8rem;background:linear-gradient(135deg,#1e3a8a,#0f172a);border-radius:8px;color:#fff;text-align:center">
+            <div style="font-size:1.5rem;margin-bottom:.3rem" id="plPreviewIcone">${cfg.loginLogo?`<img src="${cfg.loginLogo}" style="max-width:60px;max-height:60px;border-radius:10px">`:`<i class="fas ${cfg.loginIcone||'fa-tools'}"></i>`}</div>
+            <div style="font-weight:700;font-size:.95rem" id="plPreviewNome">${escapeHtml(cfg.nomeSistema||'Cristiano PDV')}</div>
+            <div style="font-size:.7rem;color:#94a3b8" id="plPreviewSub">${escapeHtml(cfg.subSistema||'Assistência Técnica')}</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" id="plRemoverLogo"><i class="fas fa-times"></i> Remover logo</button>
+          <button class="btn btn-sm" id="plRemoverBg"><i class="fas fa-times"></i> Remover fundo</button>
+          <button class="btn btn-sm" id="plRestaurar"><i class="fas fa-undo"></i> Restaurar padrão</button>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn" data-close>Cancelar</button><button class="btn btn-primary" id="plSalvar"><i class="fas fa-save"></i> Salvar</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const q = s => ov.querySelector(s);
+  const close = () => ov.remove();
+  ov.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
+  ov.addEventListener('click', e => { if(e.target === ov) close(); });
+  q('#plNome').addEventListener('input', e => { q('#plPreviewNome').textContent = e.target.value || 'Cristiano PDV'; });
+  q('#plSub').addEventListener('input', e => { q('#plPreviewSub').textContent = e.target.value || 'Assistência Técnica'; });
+  q('#plIcone').addEventListener('change', e => { if(!q('#plLogo').value.trim()) q('#plPreviewIcone').innerHTML = `<i class="fas ${e.target.value}"></i>`; });
+  q('#plLogoFile').addEventListener('change', e => {
+    const file = e.target.files[0]; if(!file) return;
+    if(file.size > 2 * 1024 * 1024){ toast('Imagem muito grande (máx. 2MB)','error'); return; }
+    const r = new FileReader(); r.onload = ev => { q('#plLogo').value = ev.target.result; q('#plPreviewIcone').innerHTML = `<img src="${ev.target.result}" style="max-width:60px;max-height:60px;border-radius:10px">`; }; r.readAsDataURL(file);
+  });
+  q('#plLogo').addEventListener('input', e => {
+    const v = e.target.value.trim();
+    q('#plPreviewIcone').innerHTML = v ? `<img src="${v}" style="max-width:60px;max-height:60px;border-radius:10px">` : `<i class="fas ${q('#plIcone').value}"></i>`;
+  });
+  q('#plBgFile').addEventListener('change', e => {
+    const file = e.target.files[0]; if(!file) return;
+    if(file.size > 3 * 1024 * 1024){ toast('Imagem muito grande (máx. 3MB)','error'); return; }
+    const r = new FileReader(); r.onload = ev => { q('#plBg').value = ev.target.result; }; r.readAsDataURL(file);
+  });
+  q('#plRemoverLogo').addEventListener('click', () => { q('#plLogo').value = ''; q('#plPreviewIcone').innerHTML = `<i class="fas ${q('#plIcone').value}"></i>`; });
+  q('#plRemoverBg').addEventListener('click', () => { q('#plBg').value = ''; });
+  q('#plRestaurar').addEventListener('click', () => {
+    q('#plNome').value = 'Cristiano PDV'; q('#plSub').value = 'Assistência Técnica';
+    q('#plIcone').value = 'fa-tools'; q('#plBg').value = ''; q('#plLogo').value = '';
+    q('#plPreviewNome').textContent = 'Cristiano PDV'; q('#plPreviewSub').textContent = 'Assistência Técnica';
+    q('#plPreviewIcone').innerHTML = '<i class="fas fa-tools"></i>';
+  });
+  q('#plSalvar').addEventListener('click', () => {
+    const cfg = DB.get('config', {});
+    cfg.nomeSistema = q('#plNome').value.trim() || 'Cristiano PDV';
+    cfg.subSistema = q('#plSub').value.trim() || 'Assistência Técnica';
+    cfg.loginIcone = q('#plIcone').value;
+    cfg.loginLogo = q('#plLogo').value.trim();
+    cfg.loginBg = q('#plBg').value.trim();
+    DB.set('config', cfg); carregarNomeSistema(); mostrarLogin();
+    toast('Tela de login atualizada!','success'); close();
+  });
+}
+
+/* ==================== PERSONALIZAR SISTEMA ==================== */
+function abrirModalPersonalizar(){
+  const cfg = DB.get('config', {});
+  const ov = document.createElement('div');
+  ov.className = 'modal-overlay active';
+  ov.innerHTML = `
+    <div class="modal" style="max-width:560px">
+      <div class="modal-header"><h3><i class="fas fa-palette"></i> Personalizar Sistema</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <h4 class="section-title" style="margin-top:0">🏪 Logo da Loja</h4>
+        <div class="form-group"><label>URL da logo</label><input id="psLogoUrl" value="${escapeHtml(cfg.logoSistema && !cfg.logoSistema.startsWith('data:') ? cfg.logoSistema : '')}" placeholder="https://exemplo.com/logo.png"></div>
+        <div class="form-group"><label>Ou upload de imagem</label><input type="file" id="psLogoFile" accept="image/*" style="padding:.4rem;border:1px dashed var(--border);border-radius:8px"></div>
+        <div class="preview-box" id="psLogoPreview">${cfg.logoSistema ? `<img src="${cfg.logoSistema}">` : 'Nenhuma logo definida'}</div>
+        <h4 class="section-title">🖼️ Imagem de fundo do sistema</h4>
+        <div class="form-group"><label>URL da imagem de fundo</label><input id="psFundoUrl" value="${escapeHtml(cfg.fundoSistema && !cfg.fundoSistema.startsWith('data:') ? cfg.fundoSistema : '')}" placeholder="https://exemplo.com/fundo.jpg"></div>
+        <div class="form-group"><label>Ou upload de imagem</label><input type="file" id="psFundoFile" accept="image/*" style="padding:.4rem;border:1px dashed var(--border);border-radius:8px"></div>
+        <div class="preview-bg" id="psFundoPreview" style="${cfg.fundoSistema?`background-image:linear-gradient(rgba(30,58,138,.7),rgba(15,23,42,.75)),url('${cfg.fundoSistema}')`:'background:#e2e8f0;color:#64748b'}">${cfg.fundoSistema ? '' : 'Nenhuma imagem definida'}</div>
+        <div style="margin-top:1.2rem;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" id="psRemoverLogo"><i class="fas fa-times"></i> Remover logo</button>
+          <button class="btn btn-sm" id="psRemoverFundo"><i class="fas fa-times"></i> Remover fundo</button>
+          <button class="btn btn-sm" id="psRestaurar"><i class="fas fa-undo"></i> Restaurar padrão</button>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn" data-close>Cancelar</button><button class="btn btn-primary" id="psSalvar"><i class="fas fa-save"></i> Salvar</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const q = s => ov.querySelector(s);
+  const close = () => ov.remove();
+  ov.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
+  ov.addEventListener('click', e => { if(e.target === ov) close(); });
+  q('#psLogoFile').addEventListener('change', e => {
+    const file = e.target.files[0]; if(!file) return;
+    if(file.size > 2 * 1024 * 1024){ toast('Logo muito grande (máx. 2MB)','error'); return; }
+    const r = new FileReader();
+    r.onload = ev => { q('#psLogoUrl').value = ev.target.result; q('#psLogoPreview').innerHTML = `<img src="${ev.target.result}">`; };
+    r.readAsDataURL(file);
+  });
+  q('#psFundoFile').addEventListener('change', e => {
+    const file = e.target.files[0]; if(!file) return;
+    if(file.size > 3 * 1024 * 1024){ toast('Imagem muito grande (máx. 3MB)','error'); return; }
+    const r = new FileReader();
+    r.onload = ev => { q('#psFundoUrl').value = ev.target.result; q('#psFundoPreview').style.backgroundImage = `linear-gradient(rgba(30,58,138,.7),rgba(15,23,42,.75)),url('${ev.target.result}')`; q('#psFundoPreview').textContent = ''; };
+    r.readAsDataURL(file);
+  });
+  q('#psLogoUrl').addEventListener('input', e => { const v = e.target.value.trim(); q('#psLogoPreview').innerHTML = v ? `<img src="${v}">` : 'Nenhuma logo definida'; });
+  q('#psFundoUrl').addEventListener('input', e => {
+    const v = e.target.value.trim();
+    if(v){ q('#psFundoPreview').style.backgroundImage = `linear-gradient(rgba(30,58,138,.7),rgba(15,23,42,.75)),url('${v}')`; q('#psFundoPreview').textContent = ''; }
+    else { q('#psFundoPreview').style.backgroundImage = ''; q('#psFundoPreview').style.background = '#e2e8f0'; q('#psFundoPreview').textContent = 'Nenhuma imagem definida'; }
+  });
+  q('#psRemoverLogo').addEventListener('click', () => { q('#psLogoUrl').value = ''; q('#psLogoPreview').innerHTML = 'Nenhuma logo definida'; });
+  q('#psRemoverFundo').addEventListener('click', () => { q('#psFundoUrl').value = ''; q('#psFundoPreview').style.backgroundImage = ''; q('#psFundoPreview').style.background = '#e2e8f0'; q('#psFundoPreview').textContent = 'Nenhuma imagem definida'; });
+  q('#psRestaurar').addEventListener('click', () => {
+    q('#psLogoUrl').value = ''; q('#psLogoPreview').innerHTML = 'Nenhuma logo definida';
+    q('#psFundoUrl').value = ''; q('#psFundoPreview').style.backgroundImage = ''; q('#psFundoPreview').style.background = '#e2e8f0'; q('#psFundoPreview').textContent = 'Nenhuma imagem definida';
+  });
+  q('#psSalvar').addEventListener('click', () => {
+    const cfg = DB.get('config', {});
+    cfg.logoSistema = q('#psLogoUrl').value.trim();
+    cfg.fundoSistema = q('#psFundoUrl').value.trim();
+    DB.set('config', cfg); aplicarLogoEFundo();
+    toast('Personalização salva!','success'); close();
+  });
+}
+
+/* ==================== NOME DO SISTEMA ==================== */
+function carregarNomeSistema(){
+  const cfg = DB.get('config', {});
+  const nome = cfg.nomeSistema || 'Cristiano PDV';
+  const sub  = cfg.subSistema  || 'Assistência Técnica';
+  const h2 = document.getElementById('sidebarNome');
+  const sm = document.getElementById('sidebarSub');
+  if(h2) h2.textContent = nome;
+  if(sm) sm.textContent = sub;
+  document.title = nome + ' | ' + sub;
+}
+
+function abrirModalEditarNome(){
+  const cfg = DB.get('config', {});
+  const nome = cfg.nomeSistema || 'Cristiano PDV';
+  const sub  = cfg.subSistema  || 'Assistência Técnica';
+  const ov = document.createElement('div');
+  ov.className = 'modal-overlay active';
+  ov.innerHTML = `
+    <div class="modal" style="max-width:480px">
+      <div class="modal-header"><h3><i class="fas fa-pen"></i> Editar nome do sistema</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="form-group"><label>Nome do sistema</label><input id="edNome" value="${escapeHtml(nome)}" maxlength="40"></div>
+        <div class="form-group"><label>Subtítulo</label><input id="edSub" value="${escapeHtml(sub)}" maxlength="40"></div>
+      </div>
+      <div class="modal-footer"><button class="btn" data-close>Cancelar</button><button class="btn btn-primary" id="salvarNome"><i class="fas fa-save"></i> Salvar</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const q = s => ov.querySelector(s);
+  const close = () => ov.remove();
+  ov.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
+  ov.addEventListener('click', e => { if(e.target === ov) close(); });
+  q('#salvarNome').addEventListener('click', () => {
+    const nome = q('#edNome').value.trim();
+    const sub = q('#edSub').value.trim();
+    if(!nome){ toast('Informe o nome','error'); return; }
+    const cfg = DB.get('config', {});
+    cfg.nomeSistema = nome; cfg.subSistema = sub || 'Assistência Técnica';
+    DB.set('config', cfg); carregarNomeSistema();
+    toast('Nome atualizado!','success'); close();
+  });
+}
+
+/* ==================== DASHBOARD ==================== */
+function renderDashboard(el){
+  const clientes=DB.get('clientes'), produtos=DB.get('produtos'), os=DB.get('os'), vendas=DB.get('vendas'), cr=DB.get('contasReceber'), cp=DB.get('contasPagar');
+  const hj=today(), mes=hj.substring(0,7);
+  const vHoje = vendas.filter(v=>v.data===hj).reduce((s,v)=>s+v.total,0);
+  const vMes = vendas.filter(v=>(v.data||'').startsWith(mes)).reduce((s,v)=>s+v.total,0);
+  const osAbertas = os.filter(o=>!['Entregue','Cancelada','Cancelado'].includes(o.status)).length;
+  const osAnd=os.filter(o=>['Em manutenção','Em reparo','Em análise'].includes(o.status)).length;
+  const osProntas=os.filter(o=>['Pronta','Pronto'].includes(o.status)).length;
+  const osEnt=os.filter(o=>o.status==='Entregue').length;
+  const estBaixo=produtos.filter(p=>p.estoque>0&&p.estoque<=p.estoqueMin).length;
+  const semEst=produtos.filter(p=>p.estoque===0).length;
+  const totRec=cr.filter(c=>c.status!=='Pago').reduce((s,c)=>s+c.valor,0);
+  const totVenc=cr.filter(c=>c.status!=='Pago'&&c.vencimento<hj).reduce((s,c)=>s+c.valor,0);
+  const totPag=cp.filter(c=>c.status!=='Pago').reduce((s,c)=>s+c.valor,0);
+  const totVendas=vendas.reduce((s,v)=>s+v.total,0);
+  const lucro=totVendas*0.35;
+  const ticket=vendas.length?totVendas/vendas.length:0;
+
+  el.innerHTML = `
+    <div class="cards-grid">
+      ${card('Vendas do dia',money(vHoje),'','vendas')}
+      ${card('Vendas do mês',money(vMes),'','vendasMes')}
+      ${card('OS Abertas',osAbertas,'','osAbertas')}
+      ${card('Em Andamento',osAnd,'','osAndamento')}
+      ${card('Prontas',osProntas,'','osProntas')}
+      ${card('Entregues',osEnt,'','osEntregues')}
+      ${card('Estoque Baixo',estBaixo,estBaixo>0?'var(--warning)':'','estoqueBaixo')}
+      ${card('Sem Estoque',semEst,semEst>0?'var(--danger)':'','semEstoque')}
+      ${card('Contas a Receber',money(totRec),'','contasReceber')}
+      ${card('Contas Vencidas',money(totVenc),totVenc>0?'var(--danger)':'','contasVencidas')}
+      ${card('Contas a Pagar',money(totPag),'','contasPagar')}
+      ${card('Lucro Estimado',money(lucro),'var(--success)','lucro')}
+      ${card('Ticket Médio',money(ticket),'','ticket')}
+      ${card('Clientes',clientes.length,'','clientes')}
+      ${card('Produtos',produtos.length,'','produtos')}
+      ${card('Vendas Realizadas',vendas.length,'','vendasTodas')}
+      ${card('Serviços Realizados',osEnt,'','servicosRealizados')}
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><h3>Vendas dos últimos 7 dias</h3><canvas id="chartVendas" height="180"></canvas></div>
+      <div class="chart-box"><h3>Formas de Pagamento</h3><canvas id="chartPgto" height="180"></canvas></div>
+    </div>
+    <div class="shortcuts">
+      <div class="shortcut-btn" data-goto="pdv"><i class="fas fa-plus-circle"></i> Nova Venda</div>
+      <div class="shortcut-btn" data-goto="os"><i class="fas fa-clipboard-list"></i> Nova OS</div>
+      <div class="shortcut-btn" data-goto="clientes"><i class="fas fa-user-plus"></i> Novo Cliente</div>
+      <div class="shortcut-btn" data-goto="produtos"><i class="fas fa-box"></i> Novo Produto</div>
+      <div class="shortcut-btn" data-goto="servicos"><i class="fas fa-wrench"></i> Novo Serviço</div>
+      <div class="shortcut-btn" data-goto="caixa"><i class="fas fa-lock-open"></i> Caixa</div>
+    </div>`;
+  const labels=[],data=[];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const iso=d.toISOString().split('T')[0]; labels.push(d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); data.push(vendas.filter(v=>v.data===iso).reduce((s,v)=>s+v.total,0)); }
+  destroyChart('chartVendas');
+  App.charts.chartVendas=new Chart(document.getElementById('chartVendas'),{type:'bar',data:{labels,datasets:[{label:'R$',data,backgroundColor:'#3b82f6',borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+  const formas={}; vendas.forEach(v=>{ const k=v.pagamento||'Outros'; formas[k]=(formas[k]||0)+v.total; });
+  const fl=Object.keys(formas), fd=fl.map(k=>formas[k]);
+  destroyChart('chartPgto');
+  App.charts.chartPgto=new Chart(document.getElementById('chartPgto'),{type:'doughnut',data:{labels:fl.length?fl:['Sem dados'],datasets:[{data:fd.length?fd:[1],backgroundColor:['#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#06b6d4']}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+}
+function card(label,val,color,onclick){
+  const clickable = onclick ? 'card-clicavel' : '';
+  const clickAttr = onclick ? `data-card-click="${onclick}"` : '';
+  return `<div class="card ${clickable}" ${clickAttr}>
+    <div class="card-label">${label}</div>
+    <div class="card-value" style="color:${color||'var(--secondary)'}">${val}</div>
+    ${onclick?'<div class="card-hint"><i class="fas fa-mouse-pointer"></i> clique para editar</div>':''}
+  </div>`;
+}
+function destroyChart(id){ if(App.charts[id]){ App.charts[id].destroy(); delete App.charts[id]; } }
+
+/* ==================== MODAL DE EDIÇÃO DO DASHBOARD ==================== */
+function abrirModalDashboard(tipo){
+  const ov = document.createElement('div');
+  ov.className = 'modal-overlay active';
+  ov.style.zIndex = '1500';
+
+  let titulo = 'Detalhes';
+  let corpo = '';
+  const hj = today(), mes = hj.substring(0,7);
+
+  if(tipo === 'vendas' || tipo === 'vendasMes' || tipo === 'vendasTodas'){
+    const todas = DB.get('vendas');
+    let lista, subtitulo;
+    if(tipo === 'vendas'){ lista = todas.filter(v=>v.data===hj); subtitulo='Vendas de hoje'; }
+    else if(tipo === 'vendasMes'){ lista = todas.filter(v=>(v.data||'').startsWith(mes)); subtitulo='Vendas do mês'; }
+    else { lista = todas.slice().reverse(); subtitulo='Todas as vendas'; }
+    titulo = `<i class="fas fa-receipt"></i> ${subtitulo} (${lista.length})`;
+    corpo = lista.length ? `<div class="table-container" style="margin:0">
+      <table><thead><tr><th>#</th><th>Data/Hora</th><th>Cliente</th><th>Pagamento</th><th>Total</th><th>Ações</th></tr></thead>
+      <tbody>${lista.map(v=>`<tr>
+        <td><strong>#${v.id}</strong></td><td>${fmtDate(v.data)} ${v.hora||''}</td>
+        <td>${escapeHtml(v.cliente)}</td><td>${escapeHtml(v.pagamento||'—')}</td>
+        <td>${money(v.total)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" data-dash-print="${v.id}" title="Imprimir"><i class="fas fa-print"></i></button>
+          <button class="btn btn-sm btn-danger" data-dash-del-venda="${v.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td></tr>`).join('')}</tbody></table></div>` : '<p class="empty-msg">Nenhuma venda neste período</p>';
+  }
+  else if(['osAbertas','osAndamento','osProntas','osEntregues','servicosRealizados'].includes(tipo)){
+    const todas = DB.get('os'), clientes = DB.get('clientes');
+    let lista, subtitulo;
+    if(tipo === 'osAbertas'){ lista = todas.filter(o=>!['Entregue','Cancelada','Cancelado'].includes(o.status)); subtitulo='OS Abertas'; }
+    else if(tipo === 'osAndamento'){ lista = todas.filter(o=>['Em manutenção','Em reparo','Em análise'].includes(o.status)); subtitulo='OS em Andamento'; }
+    else if(tipo === 'osProntas'){ lista = todas.filter(o=>['Pronta','Pronto'].includes(o.status)); subtitulo='OS Prontas'; }
+    else { lista = todas.filter(o=>o.status==='Entregue'); subtitulo='OS Entregues'; }
+    titulo = `<i class="fas fa-clipboard-list"></i> ${subtitulo} (${lista.length})`;
+    corpo = lista.length ? `<div class="table-container" style="margin:0">
+      <table><thead><tr><th>Nº</th><th>Cliente</th><th>Equipamento</th><th>Status</th><th>Total</th><th>Ações</th></tr></thead>
+      <tbody>${lista.map(o=>{ const cli = clientes.find(c=>c.id===o.clienteId); return `<tr>
+        <td><strong>${escapeHtml(o.numero)}</strong></td><td>${cli?escapeHtml(cli.nome):'—'}</td>
+        <td>${escapeHtml(o.equipamento||o.modelo||'')}</td>
+        <td><span class="badge ${corStatusOS(o.status)}">${escapeHtml(o.status)}</span></td>
+        <td>${money(o.valorTotal||0)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" data-dash-edit-os="${o.id}" title="Editar"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-danger" data-dash-del-os="${o.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td></tr>`; }).join('')}</tbody></table></div>` : '<p class="empty-msg">Nenhuma OS neste status</p>';
+  }
+  else if(tipo === 'estoqueBaixo' || tipo === 'semEstoque'){
+    const produtos = DB.get('produtos');
+    let lista, subtitulo;
+    if(tipo === 'estoqueBaixo'){ lista = produtos.filter(p=>p.estoque>0&&p.estoque<=p.estoqueMin); subtitulo='Produtos com Estoque Baixo'; }
+    else { lista = produtos.filter(p=>p.estoque===0); subtitulo='Produtos Sem Estoque'; }
+    titulo = `<i class="fas fa-box"></i> ${subtitulo} (${lista.length})`;
+    corpo = lista.length ? `<div class="table-container" style="margin:0">
+      <table><thead><tr><th>Produto</th><th>Categoria</th><th>Estoque</th><th>Mínimo</th><th>Preço</th><th>Ações</th></tr></thead>
+      <tbody>${lista.map(p=>`<tr>
+        <td><strong>${escapeHtml(p.nome)}</strong></td><td>${escapeHtml(p.categoria||'—')}</td>
+        <td>${p.estoque}</td><td>${p.estoqueMin||0}</td><td>${money(p.preco)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" data-dash-add-est="${p.id}" title="Adicionar estoque"><i class="fas fa-plus"></i></button>
+          <button class="btn btn-sm" data-dash-edit-prod="${p.id}" title="Editar"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-danger" data-dash-del-prod="${p.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td></tr>`).join('')}</tbody></table></div>` : '<p class="empty-msg">Nenhum produto</p>';
+  }
+  else if(tipo === 'contasReceber' || tipo === 'contasVencidas'){
+    const cr = DB.get('contasReceber');
+    let lista, subtitulo;
+    if(tipo === 'contasVencidas'){ lista = cr.filter(c=>c.status!=='Pago'&&c.vencimento<hj); subtitulo='Contas Vencidas'; }
+    else { lista = cr.filter(c=>c.status!=='Pago'); subtitulo='Contas a Receber'; }
+    titulo = `<i class="fas fa-coins"></i> ${subtitulo} (${lista.length})`;
+    corpo = lista.length ? `<div class="table-container" style="margin:0">
+      <table><thead><tr><th>Cliente</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${lista.map(c=>`<tr>
+        <td>${escapeHtml(c.cliente)}</td><td>${money(c.valor)}</td><td>${fmtDate(c.vencimento)}</td>
+        <td><span class="badge ${c.status==='Pago'?'badge-success':c.vencimento<hj?'badge-danger':'badge-warning'}">${c.vencimento<hj&&c.status!=='Pago'?'Vencido':c.status}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm btn-success" data-dash-pay-cr="${c.id}" title="Marcar pago"><i class="fas fa-check"></i></button>
+          <button class="btn btn-sm btn-danger" data-dash-del-cr="${c.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td></tr>`).join('')}</tbody></table></div>` : '<p class="empty-msg">Nenhuma conta</p>';
+  }
+  else if(tipo === 'contasPagar'){
+    const cp = DB.get('contasPagar');
+    const lista = cp.filter(c=>c.status!=='Pago');
+    titulo = `<i class="fas fa-file-invoice-dollar"></i> Contas a Pagar (${lista.length})`;
+    corpo = lista.length ? `<div class="table-container" style="margin:0">
+      <table><thead><tr><th>Fornecedor</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${lista.map(c=>`<tr>
+        <td>${escapeHtml(c.fornecedor)}</td><td>${money(c.valor)}</td><td>${fmtDate(c.vencimento)}</td>
+        <td><span class="badge ${c.vencimento<hj?'badge-danger':'badge-warning'}">${c.vencimento<hj?'Vencido':c.status}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm btn-success" data-dash-pay-cp="${c.id}" title="Marcar pago"><i class="fas fa-check"></i></button>
+          <button class="btn btn-sm btn-danger" data-dash-del-cp="${c.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td></tr>`).join('')}</tbody></table></div>` : '<p class="empty-msg">Nenhuma conta a pagar</p>';
+  }
+  else if(tipo === 'lucro' || tipo === 'ticket'){
+    const vendas = DB.get('vendas');
+    const tot = vendas.reduce((s,v)=>s+v.total,0);
+    const ticket = vendas.length?tot/vendas.length:0;
+    const lucro = tot*0.35;
+    titulo = `<i class="fas fa-chart-line"></i> ${tipo==='lucro'?'Lucro Estimado':'Ticket Médio'}`;
+    corpo = `<div style="text-align:center;padding:1.5rem 0">
+      <div style="font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem">${tipo==='lucro'?'Margem estimada de 35% sobre o faturamento':'Média por venda realizada'}</div>
+      <div style="font-size:2.5rem;font-weight:700;color:var(--success);margin-bottom:1rem">${money(tipo==='lucro'?lucro:ticket)}</div>
+      <div style="background:#f8fafc;padding:1rem;border-radius:8px;font-size:.85rem;text-align:left;max-width:400px;margin:0 auto">
+        <div><strong>Faturamento total:</strong> ${money(tot)}</div>
+        <div><strong>Vendas realizadas:</strong> ${vendas.length}</div>
+        ${tipo==='lucro'?`<div><strong>Margem:</strong> 35%</div>`:`<div><strong>Cálculo:</strong> ${money(tot)} ÷ ${vendas.length} = ${money(ticket)}</div>`}
+      </div>
+    </div>`;
+  }
+  else if(tipo === 'clientes'){
+    const clientes = DB.get('clientes');
+    titulo = `<i class="fas fa-users"></i> Clientes (${clientes.length})`;
+    corpo = clientes.length ? `<div class="table-container" style="margin:0">
+      <table><thead><tr><th>Código</th><th>Nome</th><th>WhatsApp</th><th>Cidade</th><th>Ações</th></tr></thead>
+      <tbody>${clientes.map(c=>`<tr>
+        <td>${escapeHtml(c.codigo||'—')}</td><td><strong>${escapeHtml(c.nome)}</strong></td>
+        <td>${escapeHtml(c.whatsapp||c.celular||'—')}</td><td>${escapeHtml(c.cidade||'—')}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" data-dash-edit-cli="${c.id}" title="Editar"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-danger" data-dash-del-cli="${c.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td></tr>`).join('')}</tbody></table></div>` : '<p class="empty-msg">Nenhum cliente</p>';
+  }
+  else if(tipo === 'produtos'){
+    const produtos = DB.get('produtos');
+    titulo = `<i class="fas fa-box"></i> Produtos (${produtos.length})`;
+    corpo = produtos.length ? `<div class="table-container" style="margin:0">
+      <table><thead><tr><th>Código</th><th>Nome</th><th>Estoque</th><th>Preço</th><th>Ações</th></tr></thead>
+      <tbody>${produtos.map(p=>`<tr>
+        <td>${escapeHtml(p.codigoInterno||'')}</td><td><strong>${escapeHtml(p.nome)}</strong></td>
+        <td>${p.estoque}</td><td>${money(p.preco)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" data-dash-edit-prod="${p.id}" title="Editar"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-danger" data-dash-del-prod="${p.id}" title="Excluir"><i class="fas fa-trash"></i></button>
+        </td></tr>`).join('')}</tbody></table></div>` : '<p class="empty-msg">Nenhum produto</p>';
+  }
+
+  ov.innerHTML = `
+    <div class="modal" style="max-width:900px;width:95%">
+      <div class="modal-header">
+        <h3>${titulo}</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="max-height:65vh;overflow-y:auto">${corpo}</div>
+      <div class="modal-footer">
+        <button class="btn" data-close>Fechar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+
+  const close = () => { ov.remove(); navigateTo('dashboard'); };
+  ov.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
+  ov.addEventListener('click', e => { if(e.target === ov) close(); });
+
+  ov.querySelectorAll('[data-dash-print]').forEach(b=>b.addEventListener('click',()=>{
+    const v = DB.get('vendas').find(x=>x.id===Number(b.dataset.dashPrint));
+    if(v) imprimirCupom(v);
+  }));
+  ov.querySelectorAll('[data-dash-del-venda]').forEach(b=>b.addEventListener('click',()=>{
+    if(!confirm('Excluir esta venda?')) return;
+    const id = Number(b.dataset.dashDelVenda);
+    DB.set('vendas', DB.get('vendas').filter(v=>v.id!==id));
+    toast('Venda excluída','success'); close();
+  }));
+  ov.querySelectorAll('[data-dash-edit-os]').forEach(b=>b.addEventListener('click',()=>{
+    const id = Number(b.dataset.dashEditOs);
+    close();
+    setTimeout(()=>abrirFormOS(id), 100);
+  }));
+  ov.querySelectorAll('[data-dash-del-os]').forEach(b=>b.addEventListener('click',()=>{
+    if(!confirm('Excluir esta OS?')) return;
+    const id = Number(b.dataset.dashDelOs);
+    DB.set('os', DB.get('os').filter(o=>o.id!==id));
+    toast('OS excluída','success'); close();
+  }));
+  ov.querySelectorAll('[data-dash-add-est]').forEach(b=>b.addEventListener('click',()=>{
+    const id = Number(b.dataset.dashAddEst);
+    const qtd = parseInt(prompt('Quantidade a adicionar:','1'));
+    if(!qtd || qtd<=0) return;
+    const produtos = DB.get('produtos');
+    const p = produtos.find(x=>x.id===id);
+    if(p){ p.estoque += qtd; DB.set('produtos',produtos); toast(`+${qtd} em ${p.nome}`,'success'); close(); }
+  }));
+  ov.querySelectorAll('[data-dash-edit-prod]').forEach(b=>b.addEventListener('click',()=>{
+    const id = Number(b.dataset.dashEditProd);
+    close();
+    setTimeout(()=>{ navigateTo('produtos'); setTimeout(()=>abrirFormProduto(id), 200); }, 100);
+  }));
+  ov.querySelectorAll('[data-dash-del-prod]').forEach(b=>b.addEventListener('click',()=>{
+    if(!confirm('Excluir este produto?')) return;
+    const id = Number(b.dataset.dashDelProd);
+    DB.set('produtos', DB.get('produtos').filter(p=>p.id!==id));
+    toast('Produto excluído','success'); close();
+  }));
+  ov.querySelectorAll('[data-dash-edit-cli]').forEach(b=>b.addEventListener('click',()=>{
+    const id = Number(b.dataset.dashEditCli);
+    close();
+    setTimeout(()=>abrirFormCliente(id), 100);
+  }));
+  ov.querySelectorAll('[data-dash-del-cli]').forEach(b=>b.addEventListener('click',()=>{
+    if(!confirm('Excluir este cliente?')) return;
+    const id = Number(b.dataset.dashDelCli);
+    DB.set('clientes', DB.get('clientes').filter(c=>c.id!==id));
+    toast('Cliente excluído','success'); close();
+  }));
+  ov.querySelectorAll('[data-dash-pay-cr]').forEach(b=>b.addEventListener('click',()=>{
+    const id = Number(b.dataset.dashPayCr);
+    const cr = DB.get('contasReceber');
+    const c = cr.find(x=>x.id===id);
+    if(c){ c.status='Pago'; DB.set('contasReceber',cr); toast('Marcado como pago','success'); close(); }
+  }));
+  ov.querySelectorAll('[data-dash-del-cr]').forEach(b=>b.addEventListener('click',()=>{
+    if(!confirm('Excluir esta conta?')) return;
+    const id = Number(b.dataset.dashDelCr);
+    DB.set('contasReceber', DB.get('contasReceber').filter(c=>c.id!==id));
+    toast('Conta excluída','success'); close();
+  }));
+  ov.querySelectorAll('[data-dash-pay-cp]').forEach(b=>b.addEventListener('click',()=>{
+    const id = Number(b.dataset.dashPayCp);
+    const cp = DB.get('contasPagar');
+    const c = cp.find(x=>x.id===id);
+    if(c){ c.status='Pago'; DB.set('contasPagar',cp); toast('Marcado como pago','success'); close(); }
+  }));
+  ov.querySelectorAll('[data-dash-del-cp]').forEach(b=>b.addEventListener('click',()=>{
+    if(!confirm('Excluir esta conta?')) return;
+    const id = Number(b.dataset.dashDelCp);
+    DB.set('contasPagar', DB.get('contasPagar').filter(c=>c.id!==id));
+    toast('Conta excluída','success'); close();
+  }));
+}
+
+/* ==================== PDV ==================== */
+function renderPDV(el){
+  const produtos=DB.get('produtos').filter(p=>p.ativo!==false&&p.exibirPDV!==false);
+  const clientes=DB.get('clientes');
+  el.innerHTML = `
+    <div class="pdv-grid">
+      <div>
+        <div class="pdv-search">
+          <input type="text" id="pdvSearch" placeholder="Buscar produto...">
+          <button class="btn btn-primary" id="pdvClear"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="pdv-product-list" id="pdvList"></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column">
+        <h3 style="margin-bottom:1rem">Carrinho</h3>
+        <div id="cartItems" style="flex:1;overflow-y:auto;max-height:280px;min-height:120px"><div class="empty-msg">Nenhum item adicionado</div></div>
+        <div style="border-top:1px solid var(--border);padding-top:.9rem;margin-top:.5rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:.4rem;font-size:.85rem"><span>Subtotal</span><strong id="cartSubtotal">R$ 0,00</strong></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;font-size:.85rem"><span>Desconto</span>
+            <input type="number" id="cartDesc" value="0" style="width:90px;text-align:right;padding:.25rem .5rem;border:1px solid var(--border);border-radius:6px"></div>
+          <div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:700;margin:.5rem 0"><span>Total</span><span id="cartTotal" style="color:var(--success)">R$ 0,00</span></div>
+          <div class="form-group" style="margin-top:.7rem"><label>Cliente</label>
+            <select id="pdvCliente"><option value="">Consumidor Final</option>
+              ${clientes.map(c=>`<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label>Forma de Pagamento</label>
+            <select id="pdvPagamento"><option>Dinheiro</option><option>PIX</option><option>Cartão Débito</option><option>Cartão Crédito</option><option>Fiado</option><option>Transferência</option></select></div>
+          <button class="btn btn-success" id="pdvFinalizar" style="width:100%;justify-content:center"><i class="fas fa-check-circle"></i> Finalizar Venda</button>
+        </div>
+      </div>
+    </div>`;
+  App.cart=[]; App.desconto=0;
+  function renderList(filter){
+    const q=(filter||'').toLowerCase();
+    const list = produtos.filter(p=>!q||p.nome.toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q));
+    document.getElementById('pdvList').innerHTML = list.length ? list.map(p=>`
+      <div class="cart-item" data-add="${p.id}">
+        <div><strong>${escapeHtml(p.nome)}</strong><br><small style="color:var(--text-muted)">${escapeHtml(p.sku||'')} • Estoque: ${p.estoque}</small></div>
+        <div style="font-weight:600">${money(p.preco)}</div>
+      </div>`).join('') : '<div class="empty-msg">Nenhum produto</div>';
+  }
+  renderList();
+  document.getElementById('pdvSearch').addEventListener('input',e=>renderList(e.target.value));
+  document.getElementById('pdvClear').addEventListener('click',()=>{ document.getElementById('pdvSearch').value=''; renderList(); });
+  document.getElementById('cartDesc').addEventListener('input',e=>{ App.desconto=parseFloat(e.target.value)||0; renderCart(); });
+  document.getElementById('pdvFinalizar').addEventListener('click', finalizarVenda);
+  renderCart();
+}
+function renderCart(){
+  const box=document.getElementById('cartItems'); if(!box) return;
+  if(App.cart.length===0){ box.innerHTML='<div class="empty-msg">Nenhum item adicionado</div>'; }
+  else { box.innerHTML = App.cart.map(i=>`
+    <div class="cart-item" style="cursor:default">
+      <div style="flex:1"><strong>${escapeHtml(i.nome)}</strong><br><small>${money(i.preco)} × </small>
+        <input type="number" min="1" value="${i.qtd}" data-qtd="${i.id}" style="width:52px;text-align:center;padding:.15rem;border:1px solid var(--border);border-radius:4px"></div>
+      <div style="display:flex;align-items:center;gap:6px"><span style="font-weight:600">${money(i.preco*i.qtd)}</span>
+        <button class="btn btn-sm btn-danger" data-rm="${i.id}"><i class="fas fa-times"></i></button></div>
+    </div>`).join(''); }
+  const sub=App.cart.reduce((s,i)=>s+i.preco*i.qtd,0);
+  const total=Math.max(0,sub-App.desconto);
+  const sEl=document.getElementById('cartSubtotal'), tEl=document.getElementById('cartTotal');
+  if(sEl) sEl.textContent=money(sub); if(tEl) tEl.textContent=money(total);
+}
+function finalizarVenda(){
+  if(App.cart.length===0){ toast('Adicione itens ao carrinho','error'); return; }
+  const sub=App.cart.reduce((s,i)=>s+i.preco*i.qtd,0);
+  const total=Math.max(0,sub-App.desconto);
+  const cliId=document.getElementById('pdvCliente').value;
+  const clientes=DB.get('clientes');
+  const clienteObj = cliId ? clientes.find(c=>c.id==cliId) : null;
+  const cliente = clienteObj ? clienteObj.nome : 'Consumidor Final';
+  const pagamento=document.getElementById('pdvPagamento').value;
+  const vendas=DB.get('vendas');
+  const nova={
+    id:nextId('vendas'), data:today(), hora:nowHora(), subtotal:sub, desconto:App.desconto, total,
+    cliente, clienteId: clienteObj?.id||null, vendedor:App.usuarioAtivo?.nome||'Admin', pagamento,
+    itens:App.cart.map(i=>({id:i.id,nome:i.nome,qtd:i.qtd,preco:i.preco,total:i.preco*i.qtd}))
+  };
+  vendas.push(nova); DB.set('vendas',vendas);
+  const prods=DB.get('produtos');
+  App.cart.forEach(it=>{ const p=prods.find(x=>x.id===it.id); if(p) p.estoque=Math.max(0,p.estoque-it.qtd); });
+  DB.set('produtos',prods);
+  abrirModalPosVenda(nova, clienteObj);
+}
+function abrirModalPosVenda(venda, cliente){
+  const ov=document.createElement('div');
+  ov.className='modal-overlay active';
+  ov.innerHTML=`
+    <div class="modal" style="max-width:580px">
+      <div class="modal-header"><h3><i class="fas fa-check-circle" style="color:var(--success)"></i> Venda #${venda.id} finalizada!</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:.85rem;color:#065f46">
+          <div><strong>Total:</strong> ${money(venda.total)}</div>
+          <div><strong>Forma de pagamento:</strong> ${escapeHtml(venda.pagamento)}</div>
+          <div><strong>Cliente:</strong> ${escapeHtml(venda.cliente)}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-primary" id="btnImprimir" style="justify-content:center;padding:1rem"><i class="fas fa-print"></i> Imprimir Cupom</button>
+          <button class="btn" id="btnWhats" style="justify-content:center;padding:1rem;background:#25D366;color:#fff;border:none"><i class="fab fa-whatsapp"></i> Enviar WhatsApp</button>
+          <button class="btn" id="btnPDF" style="justify-content:center;padding:1rem"><i class="fas fa-file-pdf"></i> Salvar PDF</button>
+          <button class="btn" id="btnNova" style="justify-content:center;padding:1rem"><i class="fas fa-plus"></i> Nova Venda</button>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn" data-close>Fechar</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close=()=>{ ov.remove(); App.cart=[]; App.desconto=0; const d=document.getElementById('cartDesc'); if(d) d.value=0; renderCart(); };
+  ov.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',close));
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+  ov.querySelector('#btnImprimir').addEventListener('click',()=>imprimirCupom(venda));
+  ov.querySelector('#btnPDF').addEventListener('click',()=>imprimirCupom(venda));
+  ov.querySelector('#btnWhats').addEventListener('click',()=>enviarCupomWhatsApp(venda, cliente));
+  ov.querySelector('#btnNova').addEventListener('click',()=>{ close(); navigateTo('pdv'); });
+}
+function imprimirCupom(venda){
+  const cfg=DB.get('config',{});
+  const w=window.open('','_blank','width=400,height=650');
+  const dataHora=(venda.data?fmtDate(venda.data):'')+' '+(venda.hora||'');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cupom #${venda.id}</title>
+    <style>
+      @page { size: 80mm auto; margin: 4mm; }
+      body{font-family:'Courier New',monospace;padding:6px;margin:0;font-size:11px;line-height:1.35;color:#000;max-width:300px}
+      h1{font-size:13px;text-align:center;margin:0 0 4px}
+      .logo{text-align:center;margin-bottom:6px}.logo img{max-width:80px;max-height:80px}
+      .center{text-align:center}.sep{border-top:1px dashed #000;margin:5px 0}.sep-d{border-top:1px solid #000;margin:5px 0}
+      table{width:100%;border-collapse:collapse;font-size:11px}td{padding:2px 0}.right{text-align:right}.bold{font-weight:bold}
+      .obs{font-size:10px;text-align:center;margin-top:6px;font-style:italic}.small{font-size:9px;text-align:center;margin-top:6px}
+      @media print{.no-print{display:none}}
+    </style></head><body>
+    ${cfg.logoSistema?`<div class="logo"><img src="${cfg.logoSistema}"></div>`:''}
+    <h1>${escapeHtml(cfg.nomeSistema||cfg.nome||'CRISTIANO PDV')}</h1>
+    <div class="center" style="font-size:9px">
+      ${cfg.cnpj?'CNPJ: '+escapeHtml(cfg.cnpj)+'<br>':''}
+      ${cfg.endereco?escapeHtml(cfg.endereco)+'<br>':''}
+      ${cfg.cidade?escapeHtml(cfg.cidade)+'/'+escapeHtml(cfg.estado||'')+'<br>':''}
+      ${cfg.telefone?'Tel: '+escapeHtml(cfg.telefone):''}
+    </div>
+    <div class="sep-d"></div>
+    <div class="center bold">CUPOM NÃO FISCAL</div>
+    <div class="center">Venda nº <strong>${venda.id}</strong> — ${dataHora}</div>
+    <div class="sep"></div>
+    <div><strong>Cliente:</strong> ${escapeHtml(venda.cliente)}</div>
+    <div class="sep-d"></div>
+    <table><tr style="font-weight:bold;border-bottom:1px solid #000"><td>ITEM</td><td class="center">QTD</td><td class="right">VL</td><td class="right">TOT</td></tr>
+      ${venda.itens.map(i=>`<tr><td style="font-size:10px">${escapeHtml(String(i.nome).substring(0,22))}</td>
+        <td class="center">${i.qtd}</td><td class="right">${Number(i.preco).toFixed(2).replace('.',',')}</td>
+        <td class="right">${Number(i.total).toFixed(2).replace('.',',')}</td></tr>`).join('')}</table>
+    <div class="sep-d"></div>
+    <table>
+      <tr><td>Subtotal</td><td class="right">R$ ${Number(venda.subtotal).toFixed(2).replace('.',',')}</td></tr>
+      ${venda.desconto>0?`<tr><td>Desconto</td><td class="right">- R$ ${Number(venda.desconto).toFixed(2).replace('.',',')}</td></tr>`:''}
+      <tr class="bold" style="font-size:13px"><td>TOTAL</td><td class="right">R$ ${Number(venda.total).toFixed(2).replace('.',',')}</td></tr>
+    </table>
+    <div class="sep"></div>
+    <div><strong>Pagamento:</strong> ${escapeHtml(venda.pagamento)}</div>
+    <div class="sep-d"></div>
+    <div class="obs">${escapeHtml(cfg.mensagemRodape||'Obrigado pela preferência!')}</div>
+    <div class="small">Documento não fiscal — sem valor fiscal.</div>
+    <div style="margin-top:15px;text-align:center;font-size:9px">*** OBRIGADO PELA PREFERÊNCIA ***</div>
+    <div class="no-print" style="text-align:center;margin-top:20px">
+      <button onclick="window.print()" style="padding:8px 16px;cursor:pointer">🖨️ Imprimir</button>
+      <button onclick="window.close()" style="padding:8px 16px;cursor:pointer">Fechar</button>
+    </div>
+    <script>setTimeout(()=>window.print(),400);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+function enviarCupomWhatsApp(venda, cliente){
+  let numero='';
+  if(cliente){ numero=(cliente.whatsapp||cliente.celular||'').replace(/\D/g,''); }
+  if(!numero){ const d=prompt('Digite o número do WhatsApp com DDD:'); if(!d) return; numero=d.replace(/\D/g,''); }
+  if(!numero||numero.length<10){ toast('Número inválido','error'); return; }
+  if(!numero.startsWith('55')) numero='55'+numero;
+  const cfg=DB.get('config',{});
+  const linhas=venda.itens.map(i=>`▪ ${i.qtd}x ${i.nome} — ${money(i.total)}`).join('\n');
+  const msg=`*${cfg.nomeSistema||cfg.nome||'Cristiano PDV'}*
+🧾 *CUPOM — Venda #${venda.id}*
+📅 ${fmtDate(venda.data)} ${venda.hora||''}
+
+👤 *Cliente:* ${venda.cliente}
+🛒 *Itens:*
+${linhas}
+
+━━━━━━━━━━━━━━
+Subtotal: ${money(venda.subtotal)}
+${venda.desconto>0?`Desconto: -${money(venda.desconto)}\n`:''}*TOTAL: ${money(venda.total)}*
+💳 Pagamento: ${venda.pagamento}
+━━━━━━━━━━━━━━
+
+${cfg.mensagemRodape||'Obrigado pela preferência!'}`;
+  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`,'_blank');
+  toast('WhatsApp aberto','success');
+}
+
+/* ==================== HISTÓRICO DE VENDAS ==================== */
+function renderVendas(el){
+  const vendas = DB.get('vendas').slice().reverse();
+  el.innerHTML = `
+    <h3>Histórico de Vendas (${vendas.length})</h3>
+    <div class="table-container" style="margin-top:1rem"><table>
+      <thead><tr><th>#</th><th>Data</th><th>Hora</th><th>Cliente</th><th>Pagamento</th><th>Total</th><th>Ações</th></tr></thead>
+      <tbody>${vendas.length ? vendas.map(v=>`
+        <tr><td><strong>#${v.id}</strong></td><td>${fmtDate(v.data)}</td><td>${escapeHtml(v.hora||'')}</td>
+          <td>${escapeHtml(v.cliente)}</td><td>${escapeHtml(v.pagamento||'')}</td><td>${money(v.total)}</td>
+          <td><button class="btn btn-sm" data-vd-print="${v.id}"><i class="fas fa-print"></i></button>
+            <button class="btn btn-sm" data-vd-whats="${v.id}" style="background:#25D366;color:#fff;border:none"><i class="fab fa-whatsapp"></i></button>
+            <button class="btn btn-sm btn-danger" data-vd-del="${v.id}"><i class="fas fa-trash"></i></button></td></tr>`).join('') : '<tr><td colspan="7" class="empty-msg">Nenhuma venda</td></tr>'}
+      </tbody></table></div>`;
+  el.querySelectorAll('[data-vd-print]').forEach(b=>b.addEventListener('click',()=>{ const v=DB.get('vendas').find(x=>x.id===Number(b.dataset.vdPrint)); if(v) imprimirCupom(v); }));
+  el.querySelectorAll('[data-vd-whats]').forEach(b=>b.addEventListener('click',()=>{ const v=DB.get('vendas').find(x=>x.id===Number(b.dataset.vdWhats)); if(!v) return; const cli=v.clienteId?DB.get('clientes').find(c=>c.id===v.clienteId):null; enviarCupomWhatsApp(v, cli); }));
+  el.querySelectorAll('[data-vd-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir venda?'))return; DB.set('vendas',DB.get('vendas').filter(v=>v.id!==Number(b.dataset.vdDel))); toast('Venda excluída','success'); navigateTo('vendas'); }));
+}
+
+/* ==================== ACOMPANHAMENTO WHATSAPP ==================== */
+function sincronizarNuvem(key, value) {
+  if (!dbCloud) return;
+  if (key === 'config') {
+    dbCloud.collection('sistema').doc('config').set({
+      nomeSistema: value.nomeSistema || 'Cristiano PDV',
+      logoSistema: value.logoSistema || '',
+      whatsapp: value.whatsapp || '',
+      telefone: value.telefone || ''
+    }, { merge: true }).catch(e => console.error('Erro ao sincronizar config na nuvem', e));
+  }
+  if (key === 'os' && Array.isArray(value)) {
+    const clientes = DB.get('clientes');
+    value.forEach(os => {
+      if (!os.codigoAcompanhamento) return;
+      const cli = clientes.find(c => c.id === os.clienteId);
+      dbCloud.collection('acompanhamentos').doc(os.codigoAcompanhamento).set({
+        numero: os.numero || '',
+        status: os.status || '',
+        clienteNome: cli?.nome || '',
+        equipamento: os.equipamento || '',
+        tipoEquip: os.tipoEquip || '',
+        marca: os.marca || '',
+        modelo: os.modelo || '',
+        tecnico: os.tecnico || '',
+        dataAbertura: os.dataAbertura || '',
+        hora: os.hora || '',
+        valorTotal: os.valorTotal || 0,
+        timeline: os.timeline || [],
+        atualizadoEm: Date.now()
+      }, { merge: true }).catch(e => console.error('Erro ao sincronizar OS na nuvem', e));
+    });
+  }
+}
+function gerarCodigoAcompanhamento(){ return 'ACOM' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2,5).toUpperCase(); }
+function gerarLinkAcompanhamento(codigo){ const base = location.href.split('#')[0].split('?')[0]; return base + '?acompanhar=' + encodeURIComponent(codigo); }
+function mensagemStatusOS(os, tipo){
+  const cli = DB.get('clientes').find(c=>c.id===os.clienteId);
+  const cfg = DB.get('config',{});
+  const link = gerarLinkAcompanhamento(os.codigoAcompanhamento);
+  const descricoes = {
+    'Recebido':'recebemos seu equipamento e já registramos sua OS.',
+    'Em análise':'estamos analisando seu equipamento.',
+    'Aguardando aprovação':'o diagnóstico está pronto! Precisamos da sua aprovação.',
+    'Aprovado':'recebemos sua aprovação! Em breve iniciaremos o reparo.',
+    'Aguardando peça':'aguardando a chegada da peça.',
+    'Em reparo':'seu equipamento está em manutenção.',
+    'Em teste':'o reparo foi concluído e estamos testando.',
+    'Pronto':'BOA NOTÍCIA! Está pronto para retirada!',
+    'Aguardando retirada':'seu equipamento está aguardando retirada.',
+    'Entregue':'equipamento entregue. Obrigado!',
+    'Cancelado':'sua OS foi cancelada.'
+  };
+  const emoji = {'Recebido':'📥','Em análise':'🔬','Aguardando aprovação':'⚠️','Aprovado':'✅','Aguardando peça':'📦','Em reparo':'🔧','Em teste':'🧪','Pronto':'🎉','Aguardando retirada':'📦','Entregue':'✅','Cancelado':'❌'};
+  let titulo = tipo==='abertura' ? `📋 *OS ${os.numero} ABERTA*` : `${emoji[os.status]||'📢'} *ATUALIZAÇÃO — OS ${os.numero}*`;
+  const desc = descricoes[os.status] || `status: ${os.status}`;
+  return `Olá, *${cli?.nome||'cliente'}*! 👋\n\n${titulo}\n\n*Status:* ${os.status}\n${desc}\n\n━━━━━━━━━━━━━━\n🔧 *Equipamento:* ${os.equipamento||os.modelo||'—'}\n👨‍🔧 *Técnico:* ${os.tecnico||'—'}\n📅 *Abertura:* ${fmtDate(os.dataAbertura)} ${os.hora||''}\n${os.valorTotal>0?`💰 *Valor:* ${money(os.valorTotal)}\n`:''}━━━━━━━━━━━━━━\n\n🔗 *Acompanhe em tempo real:*\n${link}\n\n_${cfg.nomeSistema||'Cristiano PDV'}_`;
+}
+function enviarWhatsOS(os, manual, tipo){
+  const cli = DB.get('clientes').find(c=>c.id===os.clienteId);
+  let numero = (cli?.whatsapp||cli?.celular||'').replace(/\D/g,'');
+  if(!numero) numero = String(os.whatsapp||os.telefone||'').replace(/\D/g,'');
+  if(!numero){
+    if(manual){ const d = prompt(`Cliente sem WhatsApp.\n\nDigite o número com DDD:`); if(!d) return; numero = d.replace(/\D/g,''); }
+    else { toast('Cliente sem WhatsApp','error'); return; }
+  }
+  if(!numero||numero.length<10){ toast('Número inválido','error'); return; }
+  if(!numero.startsWith('55')) numero='55'+numero;
+  const msg = mensagemStatusOS(os, tipo||'status');
+  const win = window.open(`https://wa.me/${numero}?text=${encodeURIComponent(msg)}`,'_blank');
+  if(win) toast(manual?'WhatsApp aberto':'Atualização enviada','success');
+  else toast('Permita popups','error');
+}
+
+/* ==================== PÁGINA PÚBLICA ==================== */
+function telaAcompanhamentoMsg(icone, titulo, msg){
+  return `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f1f5f9;padding:1rem"><div style="background:#fff;border-radius:12px;padding:2rem;max-width:480px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.1)"><i class="fas ${icone}" style="font-size:3rem;color:#3b82f6;margin-bottom:1rem"></i><h2 style="margin-bottom:.5rem">${escapeHtml(titulo)}</h2><p style="color:#64748b;font-size:.9rem">${escapeHtml(msg)}</p></div></div>`;
+}
+function desenharAcompanhamento(os, cfg){
+  const etapas = ['Recebido','Em análise','Aguardando aprovação','Aprovado','Aguardando peça','Em reparo','Em teste','Pronto','Aguardando retirada','Entregue'];
+  const indiceAtual = etapas.indexOf(os.status);
+  const cancelado = os.status === 'Cancelado';
+  const progresso = cancelado ? 0 : Math.max(0, indiceAtual);
+  const porcentagem = cancelado ? 100 : ((progresso) / (etapas.length-1)) * 100;
+
+  document.body.innerHTML = `
+    <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#0f172a);padding:1rem;display:flex;justify-content:center">
+      <div style="max-width:720px;width:100%">
+        <div style="text-align:center;margin-bottom:1.5rem;color:#fff">
+          ${cfg.logoSistema?`<img src="${cfg.logoSistema}" style="max-width:90px;max-height:90px;border-radius:12px;background:#fff;padding:6px;margin-bottom:.5rem">`:`<i class="fas fa-tools" style="font-size:2.5rem;color:#60a5fa;margin-bottom:.5rem"></i>`}
+          <h1 style="font-size:1.5rem;font-weight:700">${escapeHtml(cfg.nomeSistema||'Assistência Técnica')}</h1>
+          <p style="opacity:.8;font-size:.9rem"><i class="fas fa-satellite-dish"></i> Acompanhamento em tempo real</p>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:1.5rem;box-shadow:0 20px 40px rgba(0,0,0,.3);margin-bottom:1rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:.8rem">
+            <div><div style="font-size:.75rem;color:#64748b;text-transform:uppercase;letter-spacing:.5px">Ordem de Serviço</div>
+            <div style="font-size:1.6rem;font-weight:700;color:#0f172a">${escapeHtml(os.numero)}</div></div>
+            <span class="badge ${cancelado?'badge-danger':corStatusOS(os.status)}" style="font-size:.85rem;padding:.5rem 1rem">${escapeHtml(os.status)}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;font-size:.85rem;color:#0f172a;margin-bottom:1.2rem">
+            <div><strong>Cliente:</strong><br>${escapeHtml(os.clienteNome||'—')}</div>
+            <div><strong>Equipamento:</strong><br>${escapeHtml(os.tipoEquip||'')} ${escapeHtml(os.marca||'')} ${escapeHtml(os.modelo||'')}</div>
+            <div><strong>Data de entrada:</strong><br>${fmtDate(os.dataAbertura)} ${os.hora||''}</div>
+            <div><strong>Técnico:</strong><br>${escapeHtml(os.tecnico||'—')}</div>
+          </div>
+          ${cancelado ? `<div style="background:#fee2e2;color:#991b1b;padding:1rem;border-radius:8px;text-align:center;font-size:.9rem"><strong>⚠ Esta OS foi cancelada.</strong></div>` : `
+          <div style="margin:1.5rem 0 .8rem">
+            <div style="font-size:.8rem;color:#64748b;margin-bottom:.5rem"><strong>Progresso:</strong> ${progresso+1} de ${etapas.length}</div>
+            <div style="background:#e2e8f0;border-radius:20px;height:12px;overflow:hidden">
+              <div style="width:${porcentagem}%;height:100%;background:linear-gradient(90deg,#3b82f6,#10b981)"></div>
+            </div>
+          </div>
+          <div style="display:grid;gap:.5rem;margin-top:1.2rem">
+            ${etapas.map((e,i)=>{ const concluida = i <= indiceAtual; const atual = i === indiceAtual;
+              return `<div style="display:flex;align-items:center;gap:10px;padding:.6rem .8rem;border-radius:8px;background:${atual?'#dbeafe':concluida?'#f0fdf4':'#f8fafc'}">
+                <div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${concluida?'#10b981':'#cbd5e1'};color:#fff;font-size:.75rem;font-weight:700">${concluida?'✓':i+1}</div>
+                <div style="flex:1;font-size:.85rem;font-weight:${atual?'700':'500'};color:${atual?'#1e40af':concluida?'#065f46':'#64748b'}">${e} ${atual?'<span style="font-size:.7rem;background:#1e40af;color:#fff;padding:2px 6px;border-radius:10px;margin-left:6px">AGORA</span>':''}</div>
+              </div>`; }).join('')}
+          </div>`}
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:1.2rem;box-shadow:0 20px 40px rgba(0,0,0,.3);text-align:center">
+          <p style="font-size:.85rem;color:#64748b;margin-bottom:.8rem">Dúvidas? Entre em contato:</p>
+          ${cfg.whatsapp?`<a href="https://wa.me/55${String(cfg.whatsapp).replace(/\D/g,'')}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;padding:.6rem 1.2rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:.85rem;margin:4px"><i class="fab fa-whatsapp"></i> WhatsApp</a>`:''}
+          ${cfg.telefone?`<span style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;color:#0f172a;padding:.6rem 1.2rem;border-radius:8px;font-weight:600;font-size:.85rem;margin:4px"><i class="fas fa-phone"></i> ${escapeHtml(cfg.telefone)}</span>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+async function renderPaginaAcompanhamento(codigo){
+  document.querySelector('.sidebar')?.remove();
+  document.querySelector('.topbar')?.remove();
+  document.getElementById('loginScreen')?.remove();
+  document.getElementById('toast')?.remove();
+
+  if(!FIREBASE_ATIVO || !dbCloud){
+    document.body.innerHTML = telaAcompanhamentoMsg('fa-plug-circle-xmark','Acompanhamento on-line indisponível','A loja ainda não ativou a sincronização na nuvem. Entre em contato por telefone para saber o status do seu equipamento.');
+    return;
+  }
+
+  document.body.innerHTML = telaAcompanhamentoMsg('fa-spinner fa-spin','Carregando...','Buscando as informações da sua Ordem de Serviço.');
+
+  let cfg = {};
+  try{
+    const cfgSnap = await dbCloud.collection('sistema').doc('config').get();
+    if(cfgSnap.exists) cfg = cfgSnap.data();
+  }catch(e){ console.error('Erro ao carregar config da nuvem', e); }
+
+  dbCloud.collection('acompanhamentos').doc(codigo).onSnapshot(snap=>{
+    if(!snap.exists){
+      document.body.innerHTML = telaAcompanhamentoMsg('fa-search','OS não encontrada','Verifique se o link recebido está correto ou entre em contato com a loja.');
+      return;
+    }
+    desenharAcompanhamento(snap.data(), cfg);
+  }, err=>{
+    console.error('Erro ao carregar acompanhamento', err);
+    document.body.innerHTML = telaAcompanhamentoMsg('fa-triangle-exclamation','Erro ao carregar','Não foi possível carregar as informações agora. Tente novamente em instantes.');
+  });
+}
+
+/* ==================== OS ==================== */
+function renderOS(el){
+  const os=DB.get('os'), clientes=DB.get('clientes');
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+      <h3>Ordens de Serviço (${os.length})</h3>
+      <button class="btn btn-primary" id="osNova"><i class="fas fa-plus"></i> Nova OS</button>
+    </div>
+    <div class="table-container">
+      <table><thead><tr><th>Nº</th><th>Cliente</th><th>Equipamento</th><th>Status</th><th>Total</th><th>Data</th><th>Ações</th></tr></thead>
+      <tbody>${os.length?os.map(o=>{ const cli=clientes.find(c=>c.id===o.clienteId); return `<tr>
+        <td><strong>${escapeHtml(o.numero)}</strong></td><td>${cli?escapeHtml(cli.nome):'—'}</td>
+        <td>${escapeHtml(o.equipamento||'')} ${o.marca?'• '+escapeHtml(o.marca):''}</td>
+        <td><span class="badge ${corStatusOS(o.status)}">${escapeHtml(o.status)}</span></td>
+        <td>${money(o.valorTotal||0)}</td><td>${fmtDate(o.dataAbertura)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" data-os-view="${o.id}"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm" data-os-whats="${o.id}" style="background:#25D366;color:#fff;border:none"><i class="fab fa-whatsapp"></i></button>
+          <button class="btn btn-sm" data-os-link="${o.id}"><i class="fas fa-link"></i></button>
+          <button class="btn btn-sm btn-danger" data-os-del="${o.id}"><i class="fas fa-trash"></i></button>
+        </td></tr>`; }).join(''):'<tr><td colspan="7" class="empty-msg">Nenhuma OS cadastrada</td></tr>'}
+      </tbody></table>
+    </div>`;
+  document.getElementById('osNova').addEventListener('click',()=>abrirFormOS(null));
+  el.querySelectorAll('[data-os-view]').forEach(b=>b.addEventListener('click',()=>abrirFormOS(Number(b.dataset.osView))));
+  el.querySelectorAll('[data-os-whats]').forEach(b=>b.addEventListener('click',()=>{ const o=DB.get('os').find(x=>x.id===Number(b.dataset.osWhats)); if(o) enviarWhatsOS(o,true,'status'); }));
+  el.querySelectorAll('[data-os-link]').forEach(b=>b.addEventListener('click',()=>{ const o=DB.get('os').find(x=>x.id===Number(b.dataset.osLink)); if(!o) return;
+    const link = gerarLinkAcompanhamento(o.codigoAcompanhamento);
+    if(navigator.clipboard) navigator.clipboard.writeText(link).then(()=>toast('Link copiado!','success')).catch(()=>prompt('Copie:',link));
+    else prompt('Copie:',link);
+  }));
+  el.querySelectorAll('[data-os-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('os',DB.get('os').filter(o=>o.id!==Number(b.dataset.osDel))); toast('Excluída','success'); navigateTo('os'); }));
+}
+
+function abrirFormOS(id, somenteLeitura){
+  const isEdit=id!=null;
+  const os=isEdit?DB.get('os').find(o=>o.id===id):null;
+  const clientes=DB.get('clientes'), produtos=DB.get('produtos'), servicos=DB.get('servicos');
+  const cfg=DB.get('config',{garantia:90});
+  const form=os?JSON.parse(JSON.stringify(os)):{
+    id:null,numero:'OS-'+String(nextId('os')).padStart(3,'0'),
+    dataAbertura:today(),hora:nowHora(),
+    clienteId:clientes[0]?.id||'',telefone:'',whatsapp:'',
+    equipamento:'',tipoEquip:'Celular',marca:'',modelo:'',imei:'',serial:'',cor:'',senha:'',
+    acessorios:'',estado:'',defeito:'',problema:'',diagnostico:'',
+    servicoSolicitado:'',servicoRealizado:'',observacoes:'',fotos:[],
+    tecnico:'Carlos',prazo:'',garantia:cfg.garantia||90,
+    pecas:[],servicosOS:[],subtotalPecas:0,subtotalServicos:0,desconto:0,acrescimo:0,
+    valorTotal:0,valorPago:0,saldo:0,formaPagamento:'Dinheiro',status:'Recebido',
+    timeline:[{data:today(),hora:nowHora(),status:'Recebido',user:'Admin',obs:'OS aberta'}],
+    enviarWhats:true,codigoAcompanhamento:''
+  };
+  if(!form.pecas) form.pecas=[];
+  if(!form.servicosOS) form.servicosOS=[];
+  if(!form.timeline) form.timeline=[];
+  if(!form.codigoAcompanhamento) form.codigoAcompanhamento=gerarCodigoAcompanhamento();
+  if(form.enviarWhats===undefined) form.enviarWhats=true;
+
+  function recalcular(){
+    form.subtotalPecas=form.pecas.reduce((s,p)=>s+(p.preco*p.qtd-(p.desconto||0)),0);
+    form.subtotalServicos=form.servicosOS.reduce((s,x)=>s+(x.valor*x.qtd-(x.desconto||0)),0);
+    form.valorTotal=form.subtotalPecas+form.subtotalServicos-(Number(form.desconto)||0)+(Number(form.acrescimo)||0);
+    form.saldo=form.valorTotal-(Number(form.valorPago)||0);
+  }
+  recalcular();
+
+  const ov=document.createElement('div');
+  ov.className='modal-overlay active';
+  ov.innerHTML=`
+    <div class="modal" style="max-width:1100px;width:97%">
+      <div class="modal-header"><h3><i class="fas fa-clipboard-list"></i> ${isEdit?'Editar OS '+form.numero:'Nova OS'}</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="grid-3">
+          <div class="form-group"><label>Nº da OS</label><input id="fNumero" value="${escapeHtml(form.numero)}" readonly></div>
+          <div class="form-group"><label>Data</label><input type="date" id="fData" value="${form.dataAbertura}"></div>
+          <div class="form-group"><label>Hora</label><input type="time" id="fHora" value="${form.hora}"></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Cliente *</label><select id="fCliente"><option value="">Selecione...</option>
+            ${clientes.map(c=>`<option value="${c.id}" ${c.id==form.clienteId?'selected':''}>${escapeHtml(c.nome)}</option>`).join('')}</select></div>
+          <div class="form-group"><label>Telefone</label><input id="fTelefone" value="${escapeHtml(form.telefone||'')}"></div>
+          <div class="form-group"><label>Técnico</label><input id="fTecnico" value="${escapeHtml(form.tecnico||'')}"></div>
+        </div>
+        <div class="grid-4">
+          <div class="form-group"><label>Tipo</label><select id="fTipoEquip">
+            ${['Celular','Tablet','Notebook','Desktop','Computador','Impressora','Console','Smart TV','Smartwatch','Outros'].map(t=>`<option ${t===form.tipoEquip?'selected':''}>${t}</option>`).join('')}</select></div>
+          <div class="form-group"><label>Marca</label><input id="fMarca" value="${escapeHtml(form.marca||'')}"></div>
+          <div class="form-group"><label>Modelo</label><input id="fModelo" value="${escapeHtml(form.modelo||'')}"></div>
+          <div class="form-group"><label>Cor</label><input id="fCor" value="${escapeHtml(form.cor||'')}"></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>IMEI/Serial</label><input id="fImei" value="${escapeHtml(form.imei||'')}"></div>
+          <div class="form-group"><label>Equipamento</label><input id="fEquip" value="${escapeHtml(form.equipamento||'')}"></div>
+          <div class="form-group"><label>Senha</label><input type="password" id="fSenha" value="${escapeHtml(form.senha||'')}"></div>
+        </div>
+        <div class="form-group"><label>Acessórios</label><input id="fAcess" value="${escapeHtml(form.acessorios||'')}"></div>
+        <div class="grid-3">
+          <div class="form-group"><label>Defeito relatado *</label><textarea id="fDefeito" rows="2">${escapeHtml(form.defeito||'')}</textarea></div>
+          <div class="form-group"><label>Diagnóstico</label><textarea id="fDiagnostico" rows="2">${escapeHtml(form.diagnostico||'')}</textarea></div>
+          <div class="form-group"><label>Serviço realizado</label><textarea id="fServReal" rows="2">${escapeHtml(form.servicoRealizado||'')}</textarea></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Garantia (dias)</label><input type="number" id="fGarantia" value="${form.garantia||90}"></div>
+          <div class="form-group"><label>Status</label><select id="fStatus">
+            ${['Recebido','Em análise','Aguardando aprovação','Aprovado','Aguardando peça','Em reparo','Em teste','Pronto','Aguardando retirada','Entregue','Cancelado'].map(s=>`<option ${s===form.status?'selected':''}>${s}</option>`).join('')}</select></div>
+          <div class="form-group"><label>Prazo</label><input type="date" id="fPrazo" value="${form.prazo||''}"></div>
+        </div>
+        <div style="background:#e0f2fe;border:1px solid #7dd3fc;border-radius:8px;padding:1rem;margin:1rem 0">
+          <h4 style="font-size:.9rem;color:#075985;margin-bottom:.5rem"><i class="fas fa-mobile-alt"></i> Acompanhamento pelo WhatsApp</h4>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="fEnviarWhats" ${form.enviarWhats?'checked':''}>
+            <span>Enviar atualizações automáticas ao cliente</span>
+          </label>
+          <div style="margin-top:.6rem;font-size:.78rem;color:#075985">
+            <strong>Código:</strong> ${escapeHtml(form.codigoAcompanhamento)}
+            <button type="button" class="btn btn-sm" id="btnCopiarLink" style="margin-left:8px"><i class="fas fa-link"></i> Copiar link</button>
+            <button type="button" class="btn btn-sm" id="btnAbrirPagina" style="margin-left:4px"><i class="fas fa-external-link-alt"></i> Ver página</button>
+          </div>
+        </div>
+        <h4 class="section-title">Peças</h4>
+        <div style="display:flex;gap:6px;margin-bottom:.5rem">
+          <select id="addPecaSel" style="flex:1;padding:.5rem;border:1px solid var(--border);border-radius:6px">
+            <option value="">Selecione um produto...</option>
+            ${produtos.map(p=>`<option value="${p.id}">${escapeHtml(p.nome)} — ${money(p.preco)} (est: ${p.estoque})</option>`).join('')}
+          </select>
+          <button class="btn btn-primary btn-sm" id="addPeca"><i class="fas fa-plus"></i> Adicionar</button>
+        </div>
+        <div id="pecasList"></div>
+        <h4 class="section-title">Serviços</h4>
+        <div style="display:flex;gap:6px;margin-bottom:.5rem">
+          <select id="addServSel" style="flex:1;padding:.5rem;border:1px solid var(--border);border-radius:6px">
+            <option value="">Selecione um serviço...</option>
+            ${servicos.map(s=>`<option value="${s.id}">${escapeHtml(s.nome)} — ${money(s.preco)}</option>`).join('')}
+          </select>
+          <button class="btn btn-primary btn-sm" id="addServ"><i class="fas fa-plus"></i> Adicionar</button>
+        </div>
+        <div id="servicosList"></div>
+        <div style="border-top:1px solid var(--border);margin-top:1rem;padding-top:.8rem">
+          <div style="display:flex;justify-content:space-between;font-size:.85rem"><span>Subtotal Peças</span><strong id="subPecas">R$ 0,00</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:.85rem"><span>Subtotal Serviços</span><strong id="subServ">R$ 0,00</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-top:.3rem"><span>Desconto</span>
+            <input type="number" id="fDesconto" value="${form.desconto||0}" style="width:100px;text-align:right;padding:.2rem .4rem;border:1px solid var(--border);border-radius:4px"></div>
+          <div style="display:flex;justify-content:space-between;font-size:.85rem"><span>Acréscimo</span>
+            <input type="number" id="fAcrescimo" value="${form.acrescimo||0}" style="width:100px;text-align:right;padding:.2rem .4rem;border:1px solid var(--border);border-radius:4px"></div>
+          <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;margin-top:.5rem;color:var(--success)"><span>Total</span><span id="fTotal">R$ 0,00</span></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-close>Cancelar</button>
+        ${isEdit?`<button class="btn" id="btnWhatsManual" style="background:#25D366;color:#fff;border:none"><i class="fab fa-whatsapp"></i> Enviar atualização</button>`:''}
+        ${!somenteLeitura?`<button class="btn btn-primary" id="salvarOS"><i class="fas fa-save"></i> Salvar OS</button>`:''}
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const q=s=>ov.querySelector(s), qa=s=>ov.querySelectorAll(s);
+
+  function renderPecas(){
+    q('#pecasList').innerHTML=form.pecas.length?form.pecas.map((p,i)=>`
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 40px;gap:.4rem;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.82rem">
+        <span><strong>${escapeHtml(p.nome)}</strong></span>
+        <input type="number" min="1" value="${p.qtd}" data-peca-qtd="${i}" style="padding:.25rem;border:1px solid var(--border);border-radius:4px">
+        <input type="number" value="${p.preco}" step="0.01" data-peca-preco="${i}" style="padding:.25rem;border:1px solid var(--border);border-radius:4px">
+        <strong>${money(p.preco*p.qtd)}</strong>
+        <button class="btn btn-sm btn-danger" data-peca-rm="${i}"><i class="fas fa-times"></i></button>
+      </div>`).join(''):'<p class="empty-msg" style="padding:.8rem">Nenhuma peça</p>';
+    qa('[data-peca-qtd]').forEach(i=>i.addEventListener('change',()=>{form.pecas[i.dataset.pecaQtd].qtd=Math.max(1,parseInt(i.value)||1);recalcular();renderPecas();renderTotais();}));
+    qa('[data-peca-preco]').forEach(i=>i.addEventListener('change',()=>{form.pecas[i.dataset.pecaPreco].preco=parseFloat(i.value)||0;recalcular();renderPecas();renderTotais();}));
+    qa('[data-peca-rm]').forEach(b=>b.addEventListener('click',()=>{form.pecas.splice(Number(b.dataset.pecaRm),1);recalcular();renderPecas();renderTotais();}));
+  }
+  q('#addPeca').addEventListener('click',()=>{ const sel=q('#addPecaSel'), id=Number(sel.value); if(!id)return; const prod=produtos.find(p=>p.id===id); if(!prod)return;
+    form.pecas.push({produtoId:prod.id,nome:prod.nome,qtd:1,preco:prod.preco}); recalcular(); renderPecas(); renderTotais(); sel.value=''; });
+
+  function renderServicosOS(){
+    q('#servicosList').innerHTML=form.servicosOS.length?form.servicosOS.map((s,i)=>`
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 40px;gap:.4rem;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.82rem">
+        <span><strong>${escapeHtml(s.nome)}</strong></span>
+        <input type="number" min="1" value="${s.qtd}" data-serv-qtd="${i}" style="padding:.25rem;border:1px solid var(--border);border-radius:4px">
+        <input type="number" value="${s.valor}" step="0.01" data-serv-valor="${i}" style="padding:.25rem;border:1px solid var(--border);border-radius:4px">
+        <strong>${money(s.valor*s.qtd)}</strong>
+        <button class="btn btn-sm btn-danger" data-serv-rm="${i}"><i class="fas fa-times"></i></button>
+      </div>`).join(''):'<p class="empty-msg" style="padding:.8rem">Nenhum serviço</p>';
+    qa('[data-serv-qtd]').forEach(i=>i.addEventListener('change',()=>{form.servicosOS[i.dataset.servQtd].qtd=Math.max(1,parseInt(i.value)||1);recalcular();renderServicosOS();renderTotais();}));
+    qa('[data-serv-valor]').forEach(i=>i.addEventListener('change',()=>{form.servicosOS[i.dataset.servValor].valor=parseFloat(i.value)||0;recalcular();renderServicosOS();renderTotais();}));
+    qa('[data-serv-rm]').forEach(b=>b.addEventListener('click',()=>{form.servicosOS.splice(Number(b.dataset.servRm),1);recalcular();renderServicosOS();renderTotais();}));
+  }
+  q('#addServ').addEventListener('click',()=>{ const sel=q('#addServSel'), id=Number(sel.value); if(!id)return; const s=servicos.find(x=>x.id===id); if(!s)return;
+    form.servicosOS.push({servicoId:s.id,nome:s.nome,qtd:1,valor:s.preco}); recalcular(); renderServicosOS(); renderTotais(); sel.value=''; });
+
+  q('#fDesconto').addEventListener('input',e=>{form.desconto=parseFloat(e.target.value)||0;recalcular();renderTotais();});
+  q('#fAcrescimo').addEventListener('input',e=>{form.acrescimo=parseFloat(e.target.value)||0;recalcular();renderTotais();});
+
+  function renderTotais(){
+    q('#subPecas').textContent=money(form.subtotalPecas);
+    q('#subServ').textContent=money(form.subtotalServicos);
+    q('#fTotal').textContent=money(form.valorTotal);
+  }
+  renderPecas(); renderServicosOS(); renderTotais();
+
+  q('#btnCopiarLink').addEventListener('click',()=>{
+    if(!isEdit){ toast('Salve a OS primeiro para gerar o link de acompanhamento','error'); return; }
+    const link=gerarLinkAcompanhamento(form.codigoAcompanhamento);
+    if(navigator.clipboard) navigator.clipboard.writeText(link).then(()=>toast('Link copiado!','success')).catch(()=>prompt('Copie:',link));
+    else prompt('Copie:',link);
+  });
+  q('#btnAbrirPagina').addEventListener('click',()=>{
+    if(!isEdit){ toast('Salve a OS primeiro para gerar o link de acompanhamento','error'); return; }
+    if(window.electronAPI && window.electronAPI.abrirAcompanhamento){
+      window.electronAPI.abrirAcompanhamento(form.codigoAcompanhamento);
+    } else {
+      window.open(gerarLinkAcompanhamento(form.codigoAcompanhamento),'_blank');
+    }
+  });
+
+  if(isEdit){
+    q('#btnWhatsManual').addEventListener('click',()=>{
+      const g=id=>q('#'+id)?.value||'';
+      form.status=g('fStatus');
+      enviarWhatsOS(form,true,'status');
+    });
+  }
+
+  if(!somenteLeitura){
+    q('#salvarOS').addEventListener('click',()=>{
+      const g=id=>q('#'+id)?.value||'';
+      const statusAnterior = os?.status;
+      form.numero=g('fNumero'); form.dataAbertura=g('fData'); form.hora=g('fHora');
+      form.clienteId=Number(g('fCliente'))||null; form.telefone=g('fTelefone'); form.tecnico=g('fTecnico');
+      form.tipoEquip=g('fTipoEquip'); form.marca=g('fMarca'); form.modelo=g('fModelo'); form.cor=g('fCor');
+      form.imei=g('fImei'); form.equipamento=g('fEquip'); form.senha=g('fSenha'); form.acessorios=g('fAcess');
+      form.defeito=g('fDefeito'); form.diagnostico=g('fDiagnostico'); form.servicoRealizado=g('fServReal');
+      form.garantia=parseInt(g('fGarantia'))||90; form.status=g('fStatus'); form.prazo=g('fPrazo');
+      form.enviarWhats=q('#fEnviarWhats').checked;
+      if(!form.clienteId){ toast('Selecione um cliente','error'); return; }
+      if(!form.defeito.trim()){ toast('Informe o defeito','error'); return; }
+
+      const listaOS=DB.get('os');
+      const mudouStatus = isEdit && statusAnterior !== form.status;
+      if(isEdit){ const idx=listaOS.findIndex(o=>o.id===id);
+        if(mudouStatus) form.timeline.push({data:today(),hora:nowHora(),status:form.status,user:App.usuarioAtivo?.nome||'Admin',obs:'Status alterado'});
+        listaOS[idx]=form;
+      } else { form.id=nextId('os'); listaOS.push(form); }
+      DB.set('os',listaOS);
+      const prods=DB.get('produtos');
+      form.pecas.forEach(pc=>{ const p=prods.find(x=>x.id===pc.produtoId); if(p) p.estoque=Math.max(0,p.estoque-pc.qtd); });
+      DB.set('produtos',prods);
+      if(form.enviarWhats){
+        if(!isEdit){ const novaOS = DB.get('os').find(o=>o.id===form.id) || form; setTimeout(()=>enviarWhatsOS(novaOS,false,'abertura'),500); }
+        else if(mudouStatus){ setTimeout(()=>enviarWhatsOS(form,false,'status'),500); }
+      }
+      toast(`OS ${form.numero} salva`,'success');
+      ov.remove(); navigateTo('os');
+    });
+  }
+  qa('[data-close]').forEach(b=>b.addEventListener('click',()=>ov.remove()));
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
+
+/* ==================== ORÇAMENTOS ==================== */
+function renderOrcamentos(el){
+  const orcs=DB.get('orcamentos');
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+      <h3>Orçamentos (${orcs.length})</h3>
+      <button class="btn btn-primary" id="orcNovo"><i class="fas fa-plus"></i> Novo</button>
+    </div>
+    <div class="table-container"><table><thead><tr><th>Nº</th><th>Cliente</th><th>Total</th><th>Ações</th></tr></thead>
+    <tbody>${orcs.length?orcs.map(o=>`<tr><td><strong>${escapeHtml(o.numero)}</strong></td><td>${escapeHtml(o.cliente)}</td>
+      <td>${money(o.total)}</td>
+      <td><button class="btn btn-sm btn-danger" data-orc-del="${o.id}"><i class="fas fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="4" class="empty-msg">Nenhum</td></tr>'}</tbody></table></div>`;
+  document.getElementById('orcNovo').addEventListener('click',()=>{
+    modal({title:'Novo Orçamento',body:`<div class="form-group"><label>Cliente</label><input id="mOrcCli"></div>
+      <div class="form-group"><label>Total (R$)</label><input type="number" id="mOrcTot" value="0" step="0.01"></div>`,
+      onConfirm:()=>{ const c=document.getElementById('mOrcCli').value.trim(); if(!c){toast('Informe o cliente','error');return false;}
+        const orcs=DB.get('orcamentos'); const id=nextId('orcamentos');
+        orcs.push({id,numero:'ORC-'+String(id).padStart(3,'0'),cliente:c,total:parseFloat(document.getElementById('mOrcTot').value)||0,status:'Aguardando'});
+        DB.set('orcamentos',orcs); toast('Criado','success'); navigateTo('orcamentos'); return true; }});
+  });
+  el.querySelectorAll('[data-orc-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('orcamentos',DB.get('orcamentos').filter(o=>o.id!==Number(b.dataset.orcDel))); toast('Excluído','success'); navigateTo('orcamentos'); }));
+}
+
+/* ==================== CLIENTES ==================== */
+function renderClientes(el){
+  const clientes=DB.get('clientes');
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+      <h3>Clientes (${clientes.length})</h3>
+      <button class="btn btn-primary" id="cliNovo"><i class="fas fa-plus"></i> Novo Cliente</button>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Código</th><th>Nome</th><th>CPF/CNPJ</th><th>WhatsApp</th><th>Cidade</th><th>Ações</th></tr></thead>
+      <tbody>${clientes.length?clientes.map(c=>`<tr>
+        <td>${escapeHtml(c.codigo||'—')}</td>
+        <td><strong>${escapeHtml(c.nome)}</strong></td>
+        <td>${escapeHtml(c.cpf||c.cnpj||'—')}</td>
+        <td>${escapeHtml(c.whatsapp||c.celular||'—')}</td>
+        <td>${escapeHtml(c.cidade||'—')}</td>
+        <td><button class="btn btn-sm" data-cli-edit="${c.id}"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-danger" data-cli-del="${c.id}"><i class="fas fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="6" class="empty-msg">Nenhum cliente</td></tr>'}</tbody></table></div>`;
+  document.getElementById('cliNovo').addEventListener('click',()=>abrirFormCliente(null));
+  el.querySelectorAll('[data-cli-edit]').forEach(b=>b.addEventListener('click',()=>abrirFormCliente(Number(b.dataset.cliEdit))));
+  el.querySelectorAll('[data-cli-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('clientes',DB.get('clientes').filter(c=>c.id!==Number(b.dataset.cliDel))); toast('Excluído','success'); navigateTo('clientes'); }));
+}
+function abrirFormCliente(id){
+  const isEdit=id!=null;
+  const cli=isEdit?DB.get('clientes').find(c=>c.id===id):null;
+  const f=cli?JSON.parse(JSON.stringify(cli)):{id:null,codigo:codigoAuto('clientes','CLI'),tipo:'Pessoa Física',nome:'',cpf:'',cnpj:'',rg:'',telefone:'',celular:'',whatsapp:'',email:'',cep:'',rua:'',numero:'',bairro:'',cidade:'',estado:'',status:'Ativo'};
+  const ov=document.createElement('div');
+  ov.className='modal-overlay active';
+  ov.innerHTML=`
+    <div class="modal" style="max-width:900px;width:95%">
+      <div class="modal-header"><h3><i class="fas fa-user"></i> ${isEdit?'Editar Cliente':'Novo Cliente'}</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="grid-3">
+          <div class="form-group"><label>Código</label><input id="cCodigo" value="${escapeHtml(f.codigo)}" readonly></div>
+          <div class="form-group"><label>Tipo</label><select id="cTipo"><option ${f.tipo==='Pessoa Física'?'selected':''}>Pessoa Física</option><option ${f.tipo==='Pessoa Jurídica'?'selected':''}>Pessoa Jurídica</option></select></div>
+          <div class="form-group"><label>Status</label><select id="cStatus"><option ${f.status==='Ativo'?'selected':''}>Ativo</option><option ${f.status==='Inativo'?'selected':''}>Inativo</option></select></div>
+        </div>
+        <div class="form-group"><label>Nome completo *</label><input id="cNome" value="${escapeHtml(f.nome)}"></div>
+        <div class="grid-3">
+          <div class="form-group"><label>CPF</label><input id="cCpf" value="${escapeHtml(f.cpf||'')}"></div>
+          <div class="form-group"><label>CNPJ</label><input id="cCnpj" value="${escapeHtml(f.cnpj||'')}"></div>
+          <div class="form-group"><label>RG/IE</label><input id="cRg" value="${escapeHtml(f.rg||'')}"></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Telefone</label><input id="cTel" value="${escapeHtml(f.telefone||'')}"></div>
+          <div class="form-group"><label>Celular/WhatsApp</label><input id="cCel" value="${escapeHtml(f.celular||'')}"></div>
+          <div class="form-group"><label>E-mail</label><input id="cEmail" value="${escapeHtml(f.email||'')}"></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>CEP</label>
+            <div style="display:flex;gap:6px">
+              <input id="cCep" value="${escapeHtml(f.cep||'')}" placeholder="00000-000" maxlength="9" style="flex:1">
+              <button type="button" class="btn btn-sm" id="btnBuscarCep" title="Buscar endereço pelo CEP"><i class="fas fa-search"></i></button>
+            </div>
+          </div>
+          <div class="form-group" style="grid-column:span 2"><label>Rua</label><input id="cRua" value="${escapeHtml(f.rua||'')}"></div>
+        </div>
+        <div class="grid-4">
+          <div class="form-group"><label>Número</label><input id="cNum" value="${escapeHtml(f.numero||'')}"></div>
+          <div class="form-group"><label>Bairro</label><input id="cBairro" value="${escapeHtml(f.bairro||'')}"></div>
+          <div class="form-group"><label>Cidade</label><input id="cCidade" value="${escapeHtml(f.cidade||'')}"></div>
+          <div class="form-group"><label>UF</label><input id="cEstado" value="${escapeHtml(f.estado||'')}"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer"><button class="btn" data-close>Cancelar</button><button class="btn btn-primary" id="salvarCli"><i class="fas fa-save"></i> Salvar</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const q=s=>ov.querySelector(s);
+
+  q('#cCep').addEventListener('input',e=>{
+    let v=e.target.value.replace(/\D/g,'').slice(0,8);
+    if(v.length>5) v=v.slice(0,5)+'-'+v.slice(5);
+    e.target.value=v;
+  });
+  q('#cCep').addEventListener('blur',()=>{ const v=q('#cCep').value.replace(/\D/g,''); if(v.length===8) buscarCep(v); });
+  q('#btnBuscarCep').addEventListener('click',()=>{
+    const v=q('#cCep').value.replace(/\D/g,'');
+    if(v.length!==8){ toast('Informe um CEP válido (8 dígitos)','error'); return; }
+    buscarCep(v);
+  });
+  async function buscarCep(cep){
+    const btn=q('#btnBuscarCep');
+    const iconeOriginal=btn.innerHTML;
+    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled=true;
+    try{
+      const resp=await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const dados=await resp.json();
+      if(dados.erro){ toast('CEP não encontrado','error'); return; }
+      q('#cRua').value=dados.logradouro||'';
+      q('#cBairro').value=dados.bairro||'';
+      q('#cCidade').value=dados.localidade||'';
+      q('#cEstado').value=dados.uf||'';
+      toast('Endereço encontrado','success');
+      q('#cNum').focus();
+    }catch(e){
+      toast('Não foi possível buscar o CEP. Verifique sua conexão','error');
+    }finally{
+      btn.innerHTML=iconeOriginal;
+      btn.disabled=false;
+    }
+  }
+
+  q('#salvarCli').addEventListener('click',()=>{
+    const v=id=>q('#'+id)?.value||'';
+    const nome=v('cNome').trim();
+    if(!nome){ toast('Informe o nome do cliente','error'); q('#cNome').focus(); q('#cNome').style.borderColor='#ef4444'; return; }
+    const dados={codigo:v('cCodigo'),tipo:v('cTipo'),nome,cpf:v('cCpf'),cnpj:v('cCnpj'),rg:v('cRg'),telefone:v('cTel'),celular:v('cCel'),whatsapp:v('cCel'),email:v('cEmail'),cep:v('cCep'),rua:v('cRua'),numero:v('cNum'),bairro:v('cBairro'),cidade:v('cCidade'),estado:v('cEstado'),status:v('cStatus')};
+    const clientes=DB.get('clientes');
+    if(isEdit){ const idx=clientes.findIndex(c=>c.id===id); clientes[idx]={...clientes[idx],...dados}; }
+    else { dados.id=nextId('clientes'); clientes.push(dados); }
+    DB.set('clientes',clientes); toast('Salvo','success'); ov.remove(); navigateTo('clientes');
+  });
+  ov.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>ov.remove()));
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
+
+/* ==================== EQUIPAMENTOS ==================== */
+function renderEquipamentos(el){
+  const eq=DB.get('equipamentos'), clientes=DB.get('clientes');
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+      <h3>Equipamentos (${eq.length})</h3>
+      <button class="btn btn-primary" id="eqNovo"><i class="fas fa-plus"></i> Novo</button>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Tipo</th><th>Marca/Modelo</th><th>Cliente</th><th>Ações</th></tr></thead>
+      <tbody>${eq.length?eq.map(e=>{ const c=clientes.find(x=>x.id===e.clienteId); return `<tr>
+        <td>${escapeHtml(e.tipo||'—')}</td><td>${escapeHtml(e.marca||'')} ${escapeHtml(e.modelo||'')}</td>
+        <td>${c?escapeHtml(c.nome):'—'}</td>
+        <td><button class="btn btn-sm btn-danger" data-eq-del="${e.id}"><i class="fas fa-trash"></i></button></td></tr>`; }).join(''):'<tr><td colspan="4" class="empty-msg">Nenhum</td></tr>'}</tbody></table></div>`;
+  document.getElementById('eqNovo').addEventListener('click',()=>{
+    modal({title:'Novo Equipamento',body:`
+      <div class="form-group"><label>Cliente</label><select id="mEqCli">${clientes.map(c=>`<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join('')}</select></div>
+      <div class="grid-2"><div class="form-group"><label>Tipo</label><select id="mEqTipo"><option>Celular</option><option>Notebook</option><option>Desktop</option><option>Tablet</option><option>Outros</option></select></div>
+      <div class="form-group"><label>Marca</label><input id="mEqMarca"></div></div>
+      <div class="grid-2"><div class="form-group"><label>Modelo</label><input id="mEqModelo"></div>
+      <div class="form-group"><label>IMEI/Serial</label><input id="mEqImei"></div></div>`,
+      onConfirm:()=>{ const eqs=DB.get('equipamentos');
+        eqs.push({id:nextId('equipamentos'),clienteId:Number(document.getElementById('mEqCli').value),tipo:document.getElementById('mEqTipo').value,marca:document.getElementById('mEqMarca').value,modelo:document.getElementById('mEqModelo').value,imei1:document.getElementById('mEqImei').value});
+        DB.set('equipamentos',eqs); toast('Cadastrado','success'); navigateTo('equipamentos'); return true; }});
+  });
+  el.querySelectorAll('[data-eq-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('equipamentos',DB.get('equipamentos').filter(e=>e.id!==Number(b.dataset.eqDel))); toast('Excluído','success'); navigateTo('equipamentos'); }));
+}
+
+/* ==================== PRODUTOS ==================== */
+function renderProdutos(el){
+  const produtos=DB.get('produtos');
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+      <h3>Produtos (${produtos.length})</h3>
+      <button class="btn btn-primary" id="prodNovo"><i class="fas fa-plus"></i> Novo Produto</button>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Código</th><th>Nome</th><th>Categoria</th><th>Estoque</th><th>Preço</th><th>Ações</th></tr></thead>
+      <tbody>${produtos.length?produtos.map(p=>{ const cls=p.estoque===0?'badge-danger':p.estoque<=p.estoqueMin?'badge-warning':'badge-success';
+        return `<tr><td>${escapeHtml(p.codigoInterno||'')}</td><td><strong>${escapeHtml(p.nome)}</strong></td>
+          <td>${escapeHtml(p.categoria||'—')}</td><td><span class="badge ${cls}">${p.estoque}</span></td>
+          <td>${money(p.preco)}</td>
+          <td><button class="btn btn-sm" data-prod-edit="${p.id}"><i class="fas fa-edit"></i></button>
+            <button class="btn btn-sm btn-danger" data-prod-del="${p.id}"><i class="fas fa-trash"></i></button></td></tr>`; }).join(''):'<tr><td colspan="6" class="empty-msg">Nenhum produto</td></tr>'}</tbody></table></div>`;
+  document.getElementById('prodNovo').addEventListener('click',()=>abrirFormProduto(null));
+  el.querySelectorAll('[data-prod-edit]').forEach(b=>b.addEventListener('click',()=>abrirFormProduto(Number(b.dataset.prodEdit))));
+  el.querySelectorAll('[data-prod-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('produtos',DB.get('produtos').filter(p=>p.id!==Number(b.dataset.prodDel))); toast('Excluído','success'); navigateTo('produtos'); }));
+}
+
+function abrirFormProduto(id){
+  const isEdit=id!=null;
+  const p=isEdit?DB.get('produtos').find(x=>x.id===id):null;
+  const f=p?JSON.parse(JSON.stringify(p)):{id:null,codigoInterno:codigoAuto('produtos','P'),sku:'',nome:'',categoria:'Outros',marca:'',unidade:'UN',ativo:true,estoque:0,estoqueMin:2,precoCusto:0,preco:0,exibirPDV:true};
+  const ov=document.createElement('div');
+  ov.className='modal-overlay active';
+  ov.innerHTML=`
+    <div class="modal" style="max-width:700px;width:95%">
+      <div class="modal-header"><h3><i class="fas fa-box"></i> ${isEdit?'Editar Produto':'Novo Produto'}</h3>
+        <button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="grid-2"><div class="form-group"><label>Código</label><input id="pCodInt" value="${escapeHtml(f.codigoInterno)}"></div>
+          <div class="form-group"><label>SKU</label><input id="pSku" value="${escapeHtml(f.sku||'')}"></div></div>
+        <div class="form-group"><label>Nome *</label><input id="pNome" value="${escapeHtml(f.nome)}"></div>
+        <div class="grid-3"><div class="form-group"><label>Categoria</label><input id="pCat" value="${escapeHtml(f.categoria||'')}"></div>
+          <div class="form-group"><label>Marca</label><input id="pMarca" value="${escapeHtml(f.marca||'')}"></div>
+          <div class="form-group"><label>Unidade</label><select id="pUnid">${['UN','KG','MT','CX','PC','LT'].map(u=>`<option ${u===f.unidade?'selected':''}>${u}</option>`).join('')}</select></div></div>
+        <div class="grid-3"><div class="form-group"><label>Preço de venda</label><input type="number" id="pPreco" value="${f.preco||0}" step="0.01"></div>
+          <div class="form-group"><label>Custo</label><input type="number" id="pCusto" value="${f.precoCusto||0}" step="0.01"></div>
+          <div class="form-group"><label>Estoque</label><input type="number" id="pEst" value="${f.estoque||0}"></div></div>
+        <div class="grid-2"><div class="form-group"><label>Estoque mínimo</label><input type="number" id="pEstMin" value="${f.estoqueMin||0}"></div>
+          <div class="form-group"><label>Ativo</label><select id="pAtivo"><option value="true" ${f.ativo!==false?'selected':''}>Sim</option><option value="false" ${f.ativo===false?'selected':''}>Não</option></select></div></div>
+      </div>
+      <div class="modal-footer"><button class="btn" data-close>Cancelar</button><button class="btn btn-primary" id="salvarProd"><i class="fas fa-save"></i> Salvar</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const q=s=>ov.querySelector(s);
+  q('#salvarProd').addEventListener('click',()=>{
+    const v=id=>q('#'+id)?.value||'';
+    const num=id=>parseFloat(q('#'+id)?.value)||0;
+    const int=id=>parseInt(q('#'+id)?.value)||0;
+    const nome=v('pNome').trim();
+    if(!nome){ toast('Informe o nome','error'); return; }
+    const dados={codigoInterno:v('pCodInt'),sku:v('pSku'),nome,categoria:v('pCat'),marca:v('pMarca'),unidade:v('pUnid'),preco:num('pPreco'),precoCusto:num('pCusto'),estoque:int('pEst'),estoqueMin:int('pEstMin'),ativo:v('pAtivo')==='true',exibirPDV:true};
+    const produtos=DB.get('produtos');
+    if(isEdit){ const idx=produtos.findIndex(x=>x.id===id); produtos[idx]={...produtos[idx],...dados}; }
+    else { dados.id=nextId('produtos'); produtos.push(dados); }
+    DB.set('produtos',produtos); toast('Salvo','success'); ov.remove(); navigateTo('produtos');
+  });
+  ov.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>ov.remove()));
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
+
+/* ==================== SERVIÇOS ==================== */
+function renderServicos(el){
+  const servicos=DB.get('servicos');
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+      <h3>Serviços (${servicos.length})</h3>
+      <button class="btn btn-primary" id="srvNovo"><i class="fas fa-plus"></i> Novo</button>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Nome</th><th>Preço</th><th>Tempo</th><th>Garantia</th><th>Ações</th></tr></thead>
+      <tbody>${servicos.length?servicos.map(s=>`<tr><td><strong>${escapeHtml(s.nome)}</strong></td><td>${money(s.preco)}</td>
+        <td>${escapeHtml(s.tempo||'')}</td><td>${s.garantia||0} dias</td>
+        <td><button class="btn btn-sm btn-danger" data-srv-del="${s.id}"><i class="fas fa-trash"></i></button></td></tr>`).join(''):'<tr><td colspan="5" class="empty-msg">Nenhum</td></tr>'}</tbody></table></div>`;
+  document.getElementById('srvNovo').addEventListener('click',()=>{
+    modal({title:'Novo Serviço',body:`
+      <div class="form-group"><label>Nome *</label><input id="mSvNome"></div>
+      <div class="grid-3"><div class="form-group"><label>Preço</label><input type="number" id="mSvPreco" value="0" step="0.01"></div>
+      <div class="form-group"><label>Tempo</label><input id="mSvTempo" value="1h"></div>
+      <div class="form-group"><label>Garantia (dias)</label><input type="number" id="mSvGar" value="90"></div></div>`,
+      onConfirm:()=>{ const nome=document.getElementById('mSvNome').value.trim(); if(!nome){toast('Informe o nome','error');return false;}
+        const servicos=DB.get('servicos');
+        servicos.push({id:nextId('servicos'),codigo:codigoAuto('servicos','S'),nome,preco:parseFloat(document.getElementById('mSvPreco').value)||0,tempo:document.getElementById('mSvTempo').value,garantia:parseInt(document.getElementById('mSvGar').value)||0,status:'Ativo'});
+        DB.set('servicos',servicos); toast('Cadastrado','success'); navigateTo('servicos'); return true; }});
+  });
+  el.querySelectorAll('[data-srv-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('servicos',DB.get('servicos').filter(s=>s.id!==Number(b.dataset.srvDel))); toast('Excluído','success'); navigateTo('servicos'); }));
+}
+
+/* ==================== ESTOQUE ==================== */
+function renderEstoque(el){
+  const produtos=DB.get('produtos');
+  const tot=produtos.reduce((s,p)=>s+p.estoque,0);
+  const baixo=produtos.filter(p=>p.estoque>0&&p.estoque<=p.estoqueMin).length;
+  const sem=produtos.filter(p=>p.estoque===0).length;
+  el.innerHTML=`
+    <div class="cards-grid">
+      ${card('Total em Estoque',tot)}
+      ${card('Abaixo do Mínimo',baixo,baixo>0?'var(--warning)':'')}
+      ${card('Sem Estoque',sem,sem>0?'var(--danger)':'')}
+      ${card('Produtos',produtos.length)}
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Produto</th><th>Estoque</th><th>Mínimo</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${produtos.length?produtos.map(p=>{ const cls=p.estoque===0?'badge-danger':p.estoque<=p.estoqueMin?'badge-warning':'badge-success'; const st=p.estoque===0?'Sem estoque':p.estoque<=p.estoqueMin?'Baixo':'Normal';
+        return `<tr><td>${escapeHtml(p.nome)}</td><td>${p.estoque}</td><td>${p.estoqueMin||0}</td>
+          <td><span class="badge ${cls}">${st}</span></td>
+          <td><button class="btn btn-sm" data-est-add="${p.id}"><i class="fas fa-plus"></i> Entrada</button></td></tr>`; }).join(''):'<tr><td colspan="5" class="empty-msg">Nenhum</td></tr>'}</tbody></table></div>`;
+  el.querySelectorAll('[data-est-add]').forEach(b=>b.addEventListener('click',()=>{
+    const id=Number(b.dataset.estAdd); const qtd=parseInt(prompt('Quantidade a adicionar:','1')); if(!qtd||qtd<=0)return;
+    const produtos=DB.get('produtos'); const p=produtos.find(x=>x.id===id); if(p){ p.estoque+=qtd; DB.set('produtos',produtos); toast(`+${qtd} em ${p.nome}`,'success'); navigateTo('estoque'); }
+  }));
+}
+
+/* ==================== CAIXA ==================== */
+function renderCaixa(el){
+  const cx=DB.get('caixa',{aberto:false,saldo:0,movimentos:[]});
+  const vendas=DB.get('vendas'), hj=today();
+  const vendasHoje=vendas.filter(v=>v.data===hj);
+  const dinheiro=vendasHoje.filter(v=>v.pagamento==='Dinheiro').reduce((s,v)=>s+v.total,0);
+  const pix=vendasHoje.filter(v=>v.pagamento==='PIX').reduce((s,v)=>s+v.total,0);
+  const debito=vendasHoje.filter(v=>v.pagamento==='Cartão Débito').reduce((s,v)=>s+v.total,0);
+  const credito=vendasHoje.filter(v=>v.pagamento==='Cartão Crédito').reduce((s,v)=>s+v.total,0);
+  const total=vendasHoje.reduce((s,v)=>s+v.total,0);
+  el.innerHTML=`
+    <div style="display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap">
+      <button class="btn ${cx.aberto?'btn-danger':'btn-success'}" id="caixaToggle"><i class="fas ${cx.aberto?'fa-lock':'fa-lock-open'}"></i> ${cx.aberto?'Fechar Caixa':'Abrir Caixa'}</button>
+      <span class="badge ${cx.aberto?'badge-success':'badge-danger'}" style="padding:.6rem 1rem"><i class="fas fa-circle"></i> Caixa ${cx.aberto?'Aberto':'Fechado'}</span>
+    </div>
+    <div class="cards-grid">
+      ${card('Vendas Hoje',money(total))}${card('Dinheiro',money(dinheiro))}${card('PIX',money(pix))}${card('Débito',money(debito))}${card('Crédito',money(credito))}
+    </div>
+    <h3 style="margin:1.5rem 0 .8rem">Movimentações de Hoje</h3>
+    <div class="table-container"><table>
+      <thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Pagamento</th><th>Valor</th></tr></thead>
+      <tbody>${vendasHoje.length?vendasHoje.map(v=>`<tr>
+        <td>#${v.id}</td><td>${escapeHtml(v.hora||'—')}</td><td>${escapeHtml(v.cliente)}</td>
+        <td>${escapeHtml(v.pagamento||'—')}</td><td>${money(v.total)}</td></tr>`).join(''):'<tr><td colspan="5" class="empty-msg">Nenhuma venda hoje</td></tr>'}</tbody></table></div>`;
+  document.getElementById('caixaToggle').addEventListener('click',()=>{
+    const cx=DB.get('caixa',{aberto:false,saldo:0,movimentos:[]}); cx.aberto=!cx.aberto; DB.set('caixa',cx); toast(`Caixa ${cx.aberto?'aberto':'fechado'}`,'success'); navigateTo('caixa');
+  });
+}
+
+/* ==================== FINANCEIRO ==================== */
+function renderFinanceiro(el){
+  const cr=DB.get('contasReceber'), cp=DB.get('contasPagar'), hj=today();
+  const totRec=cr.filter(c=>c.status!=='Pago').reduce((s,c)=>s+c.valor,0);
+  const totVenc=cr.filter(c=>c.status!=='Pago'&&c.vencimento<hj).reduce((s,c)=>s+c.valor,0);
+  const totPag=cp.filter(c=>c.status!=='Pago').reduce((s,c)=>s+c.valor,0);
+  el.innerHTML=`
+    <div class="cards-grid">
+      ${card('A Receber',money(totRec),'var(--success)')}
+      ${card('Vencidas',money(totVenc),'var(--danger)')}
+      ${card('A Pagar',money(totPag),'var(--warning)')}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .8rem">
+      <h3>Contas a Receber</h3><button class="btn btn-primary btn-sm" id="crNovo"><i class="fas fa-plus"></i> Nova</button>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Cliente</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${cr.length?cr.map(c=>{ const venc=c.status!=='Pago'&&c.vencimento<hj; const cls=c.status==='Pago'?'badge-success':venc?'badge-danger':'badge-warning';
+        return `<tr><td>${escapeHtml(c.cliente)}</td><td>${money(c.valor)}</td><td>${fmtDate(c.vencimento)}</td>
+          <td><span class="badge ${cls}">${venc?'Vencido':c.status}</span></td>
+          <td style="white-space:nowrap">
+            ${c.status!=='Pago'?`<button class="btn btn-sm btn-success" data-cr-pay="${c.id}"><i class="fas fa-check"></i></button>`:''}
+            <button class="btn btn-sm btn-danger" data-cr-del="${c.id}"><i class="fas fa-trash"></i></button>
+          </td></tr>`; }).join(''):'<tr><td colspan="5" class="empty-msg">Nenhuma</td></tr>'}</tbody></table></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .8rem">
+      <h3>Contas a Pagar</h3><button class="btn btn-primary btn-sm" id="cpNovo"><i class="fas fa-plus"></i> Nova</button>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Fornecedor</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>${cp.length?cp.map(c=>{ const venc=c.status!=='Pago'&&c.vencimento<hj; const cls=c.status==='Pago'?'badge-success':venc?'badge-danger':'badge-warning';
+        return `<tr><td>${escapeHtml(c.fornecedor)}</td><td>${money(c.valor)}</td><td>${fmtDate(c.vencimento)}</td>
+          <td><span class="badge ${cls}">${venc?'Vencido':c.status}</span></td>
+          <td>${c.status!=='Pago'?`<button class="btn btn-sm btn-success" data-cp-pay="${c.id}"><i class="fas fa-check"></i></button>`:''}
+          <button class="btn btn-sm btn-danger" data-cp-del="${c.id}"><i class="fas fa-trash"></i></button></td></tr>`; }).join(''):'<tr><td colspan="5" class="empty-msg">Nenhuma</td></tr>'}</tbody></table></div>`;
+  document.getElementById('crNovo').addEventListener('click',()=>modal({title:'Nova Conta a Receber',
+    body:`<div class="form-group"><label>Cliente</label><input id="mCrCli"></div>
+      <div class="form-group"><label>Valor</label><input type="number" id="mCrVal" value="0" step="0.01"></div>
+      <div class="form-group"><label>Vencimento</label><input type="date" id="mCrVenc" value="${today()}"></div>`,
+    onConfirm:()=>{ const c=document.getElementById('mCrCli').value.trim(); if(!c){toast('Informe o cliente','error');return false;}
+      const cr=DB.get('contasReceber'); cr.push({id:nextId('contasReceber'),cliente:c,valor:parseFloat(document.getElementById('mCrVal').value)||0,vencimento:document.getElementById('mCrVenc').value,status:'Em aberto'});
+      DB.set('contasReceber',cr); toast('Criada','success'); navigateTo('financeiro'); return true; }}));
+  document.getElementById('cpNovo').addEventListener('click',()=>modal({title:'Nova Conta a Pagar',
+    body:`<div class="form-group"><label>Fornecedor</label><input id="mCpFor"></div>
+      <div class="form-group"><label>Valor</label><input type="number" id="mCpVal" value="0" step="0.01"></div>
+      <div class="form-group"><label>Vencimento</label><input type="date" id="mCpVenc" value="${today()}"></div>`,
+    onConfirm:()=>{ const f=document.getElementById('mCpFor').value.trim(); if(!f){toast('Informe o fornecedor','error');return false;}
+      const cp=DB.get('contasPagar'); cp.push({id:nextId('contasPagar'),fornecedor:f,valor:parseFloat(document.getElementById('mCpVal').value)||0,vencimento:document.getElementById('mCpVenc').value,status:'Em aberto'});
+      DB.set('contasPagar',cp); toast('Criada','success'); navigateTo('financeiro'); return true; }}));
+  el.querySelectorAll('[data-cr-pay]').forEach(b=>b.addEventListener('click',()=>{ const id=Number(b.dataset.crPay); const cr=DB.get('contasReceber'); const c=cr.find(x=>x.id===id); if(c){ c.status='Pago'; DB.set('contasReceber',cr); toast('Pago','success'); navigateTo('financeiro'); } }));
+  el.querySelectorAll('[data-cr-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('contasReceber',DB.get('contasReceber').filter(c=>c.id!==Number(b.dataset.crDel))); toast('Excluído','success'); navigateTo('financeiro'); }));
+  el.querySelectorAll('[data-cp-pay]').forEach(b=>b.addEventListener('click',()=>{ const id=Number(b.dataset.cpPay); const cp=DB.get('contasPagar'); const c=cp.find(x=>x.id===id); if(c){ c.status='Pago'; DB.set('contasPagar',cp); toast('Pago','success'); navigateTo('financeiro'); } }));
+  el.querySelectorAll('[data-cp-del]').forEach(b=>b.addEventListener('click',()=>{ if(!confirm('Excluir?'))return; DB.set('contasPagar',DB.get('contasPagar').filter(c=>c.id!==Number(b.dataset.cpDel))); toast('Excluído','success'); navigateTo('financeiro'); }));
+}
+
+/* ==================== GARANTIAS ==================== */
+function renderGarantias(el){
+  const os=DB.get('os'), clientes=DB.get('clientes');
+  const entregues=os.filter(o=>['Entregue','Pronta','Pronto'].includes(o.status));
+  el.innerHTML=`<h3>Controle de Garantias</h3>
+    <div class="table-container" style="margin-top:1rem"><table>
+      <thead><tr><th>OS</th><th>Cliente</th><th>Equipamento</th><th>Garantia até</th><th>Status</th></tr></thead>
+      <tbody>${entregues.length?entregues.map(o=>{ const cli=clientes.find(c=>c.id===o.clienteId);
+        const data=new Date((o.dataAbertura||today())+'T00:00:00'); const fim=new Date(data); fim.setDate(fim.getDate()+(o.garantia||90));
+        const ativa=new Date()<=fim;
+        return `<tr><td><strong>${escapeHtml(o.numero)}</strong></td><td>${cli?escapeHtml(cli.nome):'—'}</td>
+          <td>${escapeHtml(o.equipamento||o.modelo||'')}</td>
+          <td>${fim.toLocaleDateString('pt-BR')}</td>
+          <td><span class="badge ${ativa?'badge-success':'badge-danger'}">${ativa?'Ativa':'Expirada'}</span></td></tr>`; }).join(''):'<tr><td colspan="5" class="empty-msg">Nenhuma garantia</td></tr>'}</tbody></table></div>`;
+}
+
+/* ==================== RELATÓRIOS ==================== */
+function renderRelatorios(el){
+  const vendas=DB.get('vendas'), os=DB.get('os'), produtos=DB.get('produtos'), clientes=DB.get('clientes');
+  el.innerHTML=`
+    <h3>Relatórios</h3>
+    <div class="cards-grid" style="margin-top:1rem">
+      ${card('Total de Vendas',vendas.length)}
+      ${card('Faturamento',money(vendas.reduce((s,v)=>s+v.total,0)))}
+      ${card('Ticket Médio',money(vendas.length?vendas.reduce((s,v)=>s+v.total,0)/vendas.length:0))}
+      ${card('Total de OS',os.length)}
+      ${card('OS Entregues',os.filter(o=>o.status==='Entregue').length)}
+      ${card('Produtos',produtos.length)}
+      ${card('Clientes',clientes.length)}
+      ${card('Produtos em Falta',produtos.filter(p=>p.estoque===0).length)}
+    </div>`;
+}
+
+/* ==================== USUÁRIOS ==================== */
+function badgeAcesso(u){
+  if(u.perfil === 'Administrador') return '<span class="badge badge-success">Acesso total</span>';
+  if(!Array.isArray(u.permissoes)) return '<span class="badge badge-info">Acesso total (padrão)</span>';
+  if(u.permissoes.length === 0) return '<span class="badge badge-danger">Sem acesso</span>';
+  return `<span class="badge badge-warning">${u.permissoes.length}/${TODAS_PAGINAS.length} páginas</span>`;
+}
+
+function renderUsuarios(el){
+  const usuarios=DB.get('usuarios');
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+      <h3>Usuários (${usuarios.length})</h3>
+      <button class="btn btn-primary" id="usrNovo"><i class="fas fa-plus"></i> Novo</button>
+    </div>
+    <div class="table-container"><table>
+      <thead><tr><th>Nome</th><th>Login</th><th>Email</th><th>Perfil</th><th>Acesso</th><th>Ações</th></tr></thead>
+      <tbody>${usuarios.map(u=>`<tr><td><strong>${escapeHtml(u.nome)}</strong></td><td>${escapeHtml(u.login)}</td>
+        <td>${escapeHtml(u.email||'—')}</td><td><span class="badge badge-info">${escapeHtml(u.perfil)}</span></td>
+        <td>${badgeAcesso(u)}</td>
+        <td>${u.id!==1?`<button class="btn btn-sm" data-usr-edit="${u.id}" title="Editar"><i class="fas fa-pen"></i></button> <button class="btn btn-sm btn-danger" data-usr-del="${u.id}" title="Excluir"><i class="fas fa-trash"></i></button>`:'<span class="badge badge-success">Fixo</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+  document.getElementById('usrNovo').addEventListener('click',()=>{
+    modal({title:'Novo Usuário',body:`
+      <div class="form-group"><label>Nome completo *</label><input id="mUsNome"></div>
+      <div class="grid-2"><div class="form-group"><label>Login *</label><input id="mUsLogin"></div>
+        <div class="form-group"><label>Senha *</label><input type="password" id="mUsSenha"></div></div>
+      <div class="form-group"><label>E-mail</label><input id="mUsEmail"></div>
+      <div class="form-group"><label>Perfil</label><select id="mUsPerfil"><option>Administrador</option><option selected>Gerente</option><option>Vendedor</option><option>Técnico</option><option>Caixa</option><option>Estoquista</option></select></div>
+      ${blocoPermissoesHtml(null, 'Gerente')}`,
+      onConfirm:()=>{ const nome=document.getElementById('mUsNome').value.trim(); const login=document.getElementById('mUsLogin').value.trim(); const senha=document.getElementById('mUsSenha').value; const perfil=document.getElementById('mUsPerfil').value;
+        if(!nome||!login||!senha){toast('Preencha nome, login e senha','error');return false;}
+        const usuarios=DB.get('usuarios'); if(usuarios.some(u=>u.login===login)){ toast('Login já existe','error'); return false; }
+        const permissoes = lerPermissoesSelecionadas(document.querySelector('.modal-overlay.active') || document, perfil);
+        usuarios.push({id:nextId('usuarios'),nome,login,senha,email:document.getElementById('mUsEmail').value,perfil,permissoes,ativo:true});
+        DB.set('usuarios',usuarios); toast('Criado','success'); navigateTo('usuarios'); carregarUsuarioAtivo(); return true; }});
+    ligarEventosPermissoes(document.querySelector('.modal-overlay.active'), 'mUsPerfil');
+  });
+  el.querySelectorAll('[data-usr-edit]').forEach(b=>b.addEventListener('click',()=>{
+    const id=Number(b.dataset.usrEdit); const u=DB.get('usuarios').find(x=>x.id===id); if(!u) return;
+    modal({title:'Editar Usuário',body:`
+      <div class="form-group"><label>Nome completo *</label><input id="mUsNome" value="${escapeHtml(u.nome)}"></div>
+      <div class="grid-2"><div class="form-group"><label>Login *</label><input id="mUsLogin" value="${escapeHtml(u.login)}"></div>
+        <div class="form-group"><label>Nova senha (deixe em branco para manter)</label><input type="password" id="mUsSenha"></div></div>
+      <div class="form-group"><label>E-mail</label><input id="mUsEmail" value="${escapeHtml(u.email||'')}"></div>
+      <div class="form-group"><label>Perfil</label><select id="mUsPerfil">${['Administrador','Gerente','Vendedor','Técnico','Caixa','Estoquista'].map(p=>`<option ${u.perfil===p?'selected':''}>${p}</option>`).join('')}</select></div>
+      ${blocoPermissoesHtml(u.permissoes, u.perfil)}`,
+      onConfirm:()=>{ const nome=document.getElementById('mUsNome').value.trim(); const login=document.getElementById('mUsLogin').value.trim(); const perfil=document.getElementById('mUsPerfil').value;
+        if(!nome||!login){toast('Preencha nome e login','error');return false;}
+        const usuarios=DB.get('usuarios'); if(usuarios.some(x=>x.login===login && x.id!==id)){ toast('Login já existe','error'); return false; }
+        const permissoes = lerPermissoesSelecionadas(document.querySelector('.modal-overlay.active') || document, perfil);
+        const senhaNova = document.getElementById('mUsSenha').value;
+        const idx = usuarios.findIndex(x=>x.id===id);
+        usuarios[idx] = {...usuarios[idx], nome, login, email:document.getElementById('mUsEmail').value, perfil, permissoes};
+        if(senhaNova) usuarios[idx].senha = senhaNova;
+        DB.set('usuarios',usuarios); toast('Atualizado','success'); navigateTo('usuarios'); carregarUsuarioAtivo();
+        if(App.usuarioAtivo && App.usuarioAtivo.id===id) App.usuarioAtivo = usuarios[idx];
+        aplicarPermissoesMenu(); return true; }});
+    ligarEventosPermissoes(document.querySelector('.modal-overlay.active'), 'mUsPerfil');
+  }));
+  el.querySelectorAll('[data-usr-del]').forEach(b=>b.addEventListener('click',()=>{
+    const id=Number(b.dataset.usrDel); if(id===1){ toast('Não é possível excluir o admin principal','error'); return; }
+    if(!confirm('Excluir?'))return; DB.set('usuarios',DB.get('usuarios').filter(u=>u.id!==id)); toast('Excluído','success'); navigateTo('usuarios'); carregarUsuarioAtivo();
+  }));
+}
+
+/* ==================== CONFIG ==================== */
+function renderConfig(el){
+  const cfg=DB.get('config',{});
+  el.innerHTML=`
+    <h3>Configurações</h3>
+    <div style="max-width:900px;margin-top:1rem" class="card">
+      <h4 class="section-title">Nome do sistema</h4>
+      <div class="grid-2">
+        <div class="form-group"><label>Nome do sistema</label><input id="cfgNomeSistema" value="${escapeHtml(cfg.nomeSistema||'Cristiano PDV')}" maxlength="40"></div>
+        <div class="form-group"><label>Subtítulo</label><input id="cfgSubSistema" value="${escapeHtml(cfg.subSistema||'Assistência Técnica')}" maxlength="40"></div>
+      </div>
+      <h4 class="section-title">Dados da empresa</h4>
+      <div class="grid-2">
+        <div class="form-group"><label>Nome da empresa</label><input id="cfgNome" value="${escapeHtml(cfg.nome||'')}"></div>
+        <div class="form-group"><label>Razão social</label><input id="cfgRazao" value="${escapeHtml(cfg.razaoSocial||'')}"></div>
+      </div>
+      <div class="grid-3">
+        <div class="form-group"><label>CNPJ</label><input id="cfgCnpj" value="${escapeHtml(cfg.cnpj||'')}"></div>
+        <div class="form-group"><label>Inscrição Estadual</label><input id="cfgIe" value="${escapeHtml(cfg.ie||'')}"></div>
+        <div class="form-group"><label>Inscrição Municipal</label><input id="cfgIm" value="${escapeHtml(cfg.im||'')}"></div>
+      </div>
+      <div class="grid-3">
+        <div class="form-group"><label>Telefone</label><input id="cfgTel" value="${escapeHtml(cfg.telefone||'')}"></div>
+        <div class="form-group"><label>WhatsApp</label><input id="cfgWhats" value="${escapeHtml(cfg.whatsapp||'')}"></div>
+        <div class="form-group"><label>E-mail</label><input id="cfgEmail" value="${escapeHtml(cfg.email||'')}"></div>
+      </div>
+      <div class="grid-4">
+        <div class="form-group"><label>CEP</label><input id="cfgCep" value="${escapeHtml(cfg.cep||'')}"></div>
+        <div class="form-group" style="grid-column:span 2"><label>Endereço</label><input id="cfgEnd" value="${escapeHtml(cfg.endereco||'')}"></div>
+        <div class="form-group"><label>Número</label><input id="cfgNum" value="${escapeHtml(cfg.numero||'')}"></div>
+      </div>
+      <div class="grid-4">
+        <div class="form-group"><label>Bairro</label><input id="cfgBairro" value="${escapeHtml(cfg.bairro||'')}"></div>
+        <div class="form-group"><label>Cidade</label><input id="cfgCidade" value="${escapeHtml(cfg.cidade||'')}"></div>
+        <div class="form-group"><label>UF</label><input id="cfgEstado" value="${escapeHtml(cfg.estado||'')}"></div>
+        <div class="form-group"><label>Garantia (dias)</label><input type="number" id="cfgGar" value="${cfg.garantia||90}"></div>
+      </div>
+      <div class="form-group"><label>Mensagem no rodapé</label><input id="cfgRodape" value="${escapeHtml(cfg.mensagemRodape||'')}"></div>
+      <div class="form-group"><label>Termos e condições</label><textarea id="cfgTermos" rows="3">${escapeHtml(cfg.termosGarantia||'')}</textarea></div>
+      <button class="btn btn-primary" id="cfgSave"><i class="fas fa-save"></i> Salvar</button>
+      <button class="btn btn-danger" id="cfgReset" style="margin-left:8px"><i class="fas fa-trash"></i> Resetar dados</button>
+    </div>`;
+  document.getElementById('cfgSave').addEventListener('click',()=>{
+    const v=id=>document.getElementById(id)?.value||'';
+    const cfgOld = DB.get('config',{});
+    DB.set('config',{...cfgOld,nomeSistema:v('cfgNomeSistema')||'Cristiano PDV',subSistema:v('cfgSubSistema')||'Assistência Técnica',
+      nome:v('cfgNome'),razaoSocial:v('cfgRazao'),cnpj:v('cfgCnpj'),ie:v('cfgIe'),im:v('cfgIm'),
+      telefone:v('cfgTel'),whatsapp:v('cfgWhats'),email:v('cfgEmail'),
+      cep:v('cfgCep'),endereco:v('cfgEnd'),numero:v('cfgNum'),bairro:v('cfgBairro'),cidade:v('cfgCidade'),estado:v('cfgEstado'),
+      garantia:parseInt(v('cfgGar'))||90,mensagemRodape:v('cfgRodape'),termosGarantia:v('cfgTermos')});
+    carregarNomeSistema();
+    toast('Configurações salvas','success');
+  });
+  document.getElementById('cfgReset').addEventListener('click',()=>{
+    if(!confirm('Isso apagará TODOS os dados. Continuar?')) return;
+    if(!confirm('Tem certeza absoluta?')) return;
+    localStorage.clear(); location.reload();
+  });
+}
+
+/* ==================== MODAL ==================== */
+function modal({title,body,onConfirm}){
+  const ov=document.createElement('div');
+  ov.className='modal-overlay active';
+  ov.innerHTML=`<div class="modal">
+    <div class="modal-header"><h3>${escapeHtml(title)}</h3><button class="btn btn-sm" data-close><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-footer"><button class="btn" data-close>Cancelar</button>${onConfirm?'<button class="btn btn-primary" data-confirm>Confirmar</button>':''}</div>
+  </div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',close));
+  ov.querySelector('[data-confirm]')?.addEventListener('click',()=>{ if(!onConfirm||onConfirm()!==false){ close(); } });
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+}
+
+/* ==================== PERMISSÕES DE ACESSO ==================== */
+const GRUPOS_PERMISSOES = [
+  { titulo:'Principal', paginas:[['dashboard','Dashboard'],['pdv','PDV / Vendas'],['vendas','Histórico de Vendas'],['os','Ordens de Serviço'],['orcamentos','Orçamentos']] },
+  { titulo:'Cadastros', paginas:[['clientes','Clientes'],['equipamentos','Equipamentos'],['produtos','Produtos'],['servicos','Serviços'],['estoque','Estoque']] },
+  { titulo:'Financeiro', paginas:[['caixa','Caixa'],['financeiro','Financeiro'],['garantias','Garantias']] },
+  { titulo:'Sistema', paginas:[['relatorios','Relatórios'],['usuarios','Usuários'],['config','Configurações']] }
+];
+const TODAS_PAGINAS = GRUPOS_PERMISSOES.flatMap(g => g.paginas.map(p => p[0]));
+
+function temPermissao(pagina, usuario){
+  const u = usuario || App.usuarioAtivo;
+  if(!u) return false;
+  if(u.perfil === 'Administrador') return true;
+  if(Array.isArray(u.permissoes)) return u.permissoes.includes(pagina);
+  return true; // usuário sem permissões definidas ainda (compatibilidade): acesso total até o admin restringir
+}
+
+function aplicarPermissoesMenu(){
+  const u = App.usuarioAtivo;
+  document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+    el.style.display = temPermissao(el.dataset.page, u) ? '' : 'none';
+  });
+}
+
+function montarCheckboxesPermissoes(permissoesAtuais, perfilAtual){
+  const bloqueado = perfilAtual === 'Administrador';
+  return GRUPOS_PERMISSOES.map(g => `
+    <div style="margin-bottom:.7rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.35rem">${g.titulo}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem 1.1rem">
+        ${g.paginas.map(([key,label]) => `<label style="display:flex;align-items:center;gap:5px;font-size:.82rem;font-weight:400;cursor:pointer">
+          <input type="checkbox" class="perm-check" value="${key}" ${(!permissoesAtuais || permissoesAtuais.includes(key)) ? 'checked' : ''} ${bloqueado ? 'disabled' : ''} style="width:auto"> ${label}
+        </label>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function blocoPermissoesHtml(permissoesAtuais, perfilAtual){
+  return `
+    <div class="form-group">
+      <label>Permissões de acesso</label>
+      <div style="display:flex;gap:8px;margin-bottom:.6rem" id="permBotoes">
+        <button type="button" class="btn btn-sm" id="permMarcarTudo">Marcar tudo</button>
+        <button type="button" class="btn btn-sm" id="permDesmarcarTudo">Desmarcar tudo</button>
+      </div>
+      <div id="permissoesLista">${montarCheckboxesPermissoes(permissoesAtuais, perfilAtual)}</div>
+      <small id="permAvisoAdmin" style="display:${perfilAtual==='Administrador'?'block':'none'};color:var(--text-muted);margin-top:.3rem">
+        <i class="fas fa-circle-info"></i> Administradores têm acesso total a todas as páginas, independente das opções acima.
+      </small>
+    </div>`;
+}
+
+function ligarEventosPermissoes(modalEl, perfilSelectId){
+  const q = s => modalEl.querySelector(s);
+  q('#permMarcarTudo')?.addEventListener('click', () => modalEl.querySelectorAll('.perm-check').forEach(c => c.checked = true));
+  q('#permDesmarcarTudo')?.addEventListener('click', () => modalEl.querySelectorAll('.perm-check').forEach(c => c.checked = false));
+  q('#' + perfilSelectId)?.addEventListener('change', e => {
+    const isAdmin = e.target.value === 'Administrador';
+    modalEl.querySelectorAll('.perm-check').forEach(c => { c.disabled = isAdmin; if(isAdmin) c.checked = true; });
+    const aviso = q('#permAvisoAdmin'); if(aviso) aviso.style.display = isAdmin ? 'block' : 'none';
+  });
+}
+
+function lerPermissoesSelecionadas(modalEl, perfil){
+  if(perfil === 'Administrador') return undefined; // admin não precisa de array, acesso sempre total
+  return Array.from(modalEl.querySelectorAll('.perm-check:checked')).map(c => c.value);
+}
+
+/* ==================== NAVEGAÇÃO ==================== */
+const PAGES = {
+  dashboard:renderDashboard,pdv:renderPDV,vendas:renderVendas,os:renderOS,orcamentos:renderOrcamentos,
+  clientes:renderClientes,equipamentos:renderEquipamentos,produtos:renderProdutos,servicos:renderServicos,
+  estoque:renderEstoque,caixa:renderCaixa,financeiro:renderFinanceiro,garantias:renderGarantias,
+  relatorios:renderRelatorios,usuarios:renderUsuarios,config:renderConfig
+};
+function navigateTo(page){
+  if(!temPermissao(page)){
+    toast('Você não tem permissão para acessar esta área', 'error');
+    if(page !== 'dashboard' && temPermissao('dashboard')) navigateTo('dashboard');
+    return;
+  }
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
+  const nav=document.querySelector(`.nav-item[data-page="${page}"]`);
+  document.getElementById('pageTitle').textContent = nav ? nav.textContent.trim() : 'Dashboard';
+  const content=document.getElementById('appContent');
+  content.innerHTML='';
+  const fn=PAGES[page];
+  if(fn){ try{ fn(content); }catch(err){ console.error(err); content.innerHTML='<div class="empty-msg">Erro: '+escapeHtml(err.message)+'</div>'; } }
+  else content.innerHTML='<div class="empty-msg">Página não encontrada</div>';
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+/* ==================== EVENTOS ==================== */
+document.addEventListener('click',e=>{
+  // Cards do dashboard (ANTES de tudo)
+  const cardClick = e.target.closest('[data-card-click]');
+  if(cardClick){ abrirModalDashboard(cardClick.dataset.cardClick); return; }
+  
+  const nav=e.target.closest('.nav-item');
+  if(nav){ e.preventDefault(); navigateTo(nav.dataset.page); return; }
+  const sc=e.target.closest('.shortcut-btn');
+  if(sc&&sc.dataset.goto){ navigateTo(sc.dataset.goto); return; }
+  const add=e.target.closest('[data-add]');
+  if(add){ const id=Number(add.dataset.add); const prod=DB.get('produtos').find(p=>p.id===id);
+    if(prod){ const it=App.cart.find(i=>i.id===id); if(it) it.qtd++; else App.cart.push({id:prod.id,nome:prod.nome,preco:prod.preco,qtd:1}); renderCart(); } return; }
+  const rm=e.target.closest('[data-rm]');
+  if(rm){ App.cart=App.cart.filter(i=>i.id!==Number(rm.dataset.rm)); renderCart(); return; }
+});
+document.addEventListener('input',e=>{
+  if(e.target.matches('[data-qtd]')){ const id=Number(e.target.dataset.qtd); const it=App.cart.find(i=>i.id===id); if(it){ it.qtd=Math.max(1,parseInt(e.target.value)||1); renderCart(); } }
+});
+document.getElementById('menuToggle').addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('open'));
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='F2'){ e.preventDefault(); navigateTo('pdv'); }
+  else if(e.key==='F5'){ e.preventDefault(); navigateTo('os'); }
+  else if(e.key==='F7'){ e.preventDefault(); navigateTo('caixa'); }
+  else if(e.key==='Escape'){ document.querySelectorAll('.modal-overlay').forEach(m=>m.remove()); }
+});
+
+/* ==================== USUÁRIO ==================== */
+function carregarUsuarioAtivo(){
+  const sel=document.getElementById('userSwitch');
+  if(!sel) return;
+  const usuarios=DB.get('usuarios',[]);
+  sel.innerHTML=usuarios.map(u=>`<option value="${u.id}" ${App.usuarioAtivo&&App.usuarioAtivo.id===u.id?'selected':''}>${escapeHtml(u.nome)} (${escapeHtml(u.perfil)})</option>`).join('');
+  sel.onchange=()=>{
+    const u=usuarios.find(x=>x.id===Number(sel.value)); App.usuarioAtivo=u; toast('Usuário: '+u.nome,'success');
+    aplicarPermissoesMenu();
+    const paginaAtiva = document.querySelector('.nav-item.active')?.dataset.page;
+    if(paginaAtiva && !temPermissao(paginaAtiva)) navigateTo('dashboard');
+  };
+  if(!App.usuarioAtivo) App.usuarioAtivo=usuarios[0]||null;
+  aplicarPermissoesMenu();
+}
+
+function iniciarLogin(){
+  const form = document.getElementById('loginForm');
+  if(form) form.addEventListener('submit', fazerLogin);
+  document.getElementById('btnEditLogin')?.addEventListener('click', abrirModalPersonalizarLogin);
+  aplicarLogoEFundo();
+  const sessao = getSession();
+  const SETE_DIAS = 7 * 24 * 60 * 60 * 1000;
+  const sessaoValida = sessao && (Date.now() - sessao.timestamp) < SETE_DIAS;
+  if(sessaoValida){
+    const usuarios = DB.get('usuarios', []);
+    const u = usuarios.find(x => x.id === sessao.id || x.login === sessao.login);
+    App.usuarioAtivo = u || {id:sessao.id,nome:sessao.nome,login:sessao.login,perfil:sessao.perfil};
+    esconderLogin();
+    carregarUsuarioAtivo();
+    navigateTo('dashboard');
+    setTimeout(avisarValidadeLicenca, 1200);
+  } else {
+    if(sessao) clearSession();
+    mostrarLogin();
+  }
+}
+
+/* ==================== PÁGINA PÚBLICA ==================== */
+(function verificarPaginaPublica(){
+  const params = new URLSearchParams(window.location.search);
+  const codigo = params.get('acompanhar');
+  if(codigo){ renderPaginaAcompanhamento(codigo); return true; }
+  return false;
+})();
+
+/* ==================== INIT ==================== */
+if(!window.location.search.includes('acompanhar=')){
+  carregarNomeSistema();
+  aplicarLogoEFundo();
+  document.getElementById('btnEditNome')?.addEventListener('click', abrirModalEditarNome);
+  document.getElementById('sidebarNome')?.addEventListener('click', abrirModalEditarNome);
+  document.getElementById('sidebarSub')?.addEventListener('click', abrirModalEditarNome);
+  document.getElementById('btnLogout')?.addEventListener('click', logout);
+  document.getElementById('btnPersonalizar')?.addEventListener('click', abrirModalPersonalizar);
+  const lic = getLicenseStatus();
+  if(lic.ativo) iniciarLogin();
+  else mostrarTelaLicenca(lic.motivo, lic.info);
+}
+</script>
+</body>
+</html>
